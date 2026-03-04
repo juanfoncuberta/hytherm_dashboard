@@ -1,0 +1,193 @@
+// ════════════════════════════════════════════════════════════
+//  API: OPEN-METEO
+// ════════════════════════════════════════════════════════════
+async function fetchOpenMeteo(node) {
+    const { lat, lon } = CFG.NODES[node];
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
+        `&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,weather_code,surface_pressure,uv_index`+
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,uv_index_max`+
+        `&wind_speed_unit=kmh&timezone=Europe%2FMadrid&forecast_days=7`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`OM ${res.status}`);
+    return await res.json();
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: NASA POWER
+// ════════════════════════════════════════════════════════════
+async function fetchNASA(node) {
+    const { lat, lon } = CFG.NODES[node];
+    const today = new Date();
+    const end   = today.toISOString().slice(0,10).replace(/-/g,'');
+    const start = new Date(today-7*86400000).toISOString().slice(0,10).replace(/-/g,'');
+    const url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN&community=RE&longitude=${lon}&latitude=${lat}&start=${start}&end=${end}&format=JSON`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`NASA ${res.status}`);
+    return await res.json();
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: REData
+// ════════════════════════════════════════════════════════════
+async function fetchREData() {
+    const now   = new Date();
+    const start = new Date(now-2*3600000).toISOString().slice(0,16);
+    const end   = now.toISOString().slice(0,16);
+    const urlG = `https://apidatos.ree.es/es/datos/generacion/estructura-generacion?start_date=${start}&end_date=${end}&time_trunc=hour`;
+    const urlD = `https://apidatos.ree.es/es/datos/demanda/demanda-tiempo-real?start_date=${start}&end_date=${end}&time_trunc=hour`;
+    const [rG, rD] = await Promise.all([fetch(urlG), fetch(urlD)]);
+    const co2f = {'Hidráulica':4,'Nuclear':12,'Carbón':820,'Ciclo combinado':490,'Eólica':11,'Solar fotovoltaica':41,'Solar térmica':22,'Cogeneración':200,'Importación saldo':350};
+    const renewSrc = ['Hidráulica','Eólica','Solar fotovoltaica','Solar térmica','Otras renovables'];
+    let renewable=0, fossil=0, co2sum=0, demand=null;
+    if (rG.ok) {
+        const g = await rG.json();
+        (g?.included||[]).forEach(item => {
+            const name = item.attributes?.title||'';
+            const vals = item.attributes?.values||[];
+            if (!vals.length) return;
+            const mw = vals[vals.length-1]?.value||0;
+            if (renewSrc.some(r=>name.includes(r))) renewable+=mw; else fossil+=mw;
+            co2sum += mw*(co2f[name]||200);
+        });
+    }
+    if (rD.ok) {
+        const d = await rD.json();
+        const inc = d?.included?.[0];
+        if (inc?.attributes?.values?.length) demand = inc.attributes.values[inc.attributes.values.length-1].value;
+    }
+    const total = renewable+fossil;
+    return { renewable:Math.round(renewable), fossil:Math.round(fossil), total:Math.round(total),
+             renewablePct: total>0?Math.round(renewable/total*100):null,
+             co2: total>0?Math.round(co2sum/total):null, demand };
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: EFFIS + EDO (via Open-Meteo)
+// ════════════════════════════════════════════════════════════
+async function fetchEFFIS(node) {
+    const {lat,lon} = CFG.NODES[node];
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=fire_danger_index,precipitation_sum,et0_fao_evapotranspiration&timezone=Europe%2FMadrid&forecast_days=3&past_days=30`;
+    const res = await fetch(url); if (!res.ok) return null;
+    const d = await res.json();
+    const fwi = d?.daily?.fire_danger_index?.[30]??null;
+    const fwiLabel = v => v===null?{l:'N/D',c:'var(--muted)'}:v<5.2?{l:'BAJO',c:'var(--ok)'}:v<11.2?{l:'MODERADO',c:'#84cc16'}:v<21.3?{l:'ALTO',c:'var(--warn)'}:v<38?{l:'MUY ALTO',c:'#f97316'}:{l:'EXTREMO',c:'var(--danger)'};
+    const precip = (d?.daily?.precipitation_sum||[]).slice(0,30).reduce((a,b)=>a+(b||0),0);
+    const et0    = (d?.daily?.et0_fao_evapotranspiration||[]).slice(0,30).reduce((a,b)=>a+(b||0),0);
+    const balance = precip-et0;
+    const droughtLabel = v=>v>20?{l:'Normal',c:'var(--ok)'}:v>-10?{l:'Leve',c:'#84cc16'}:v>-40?{l:'Moderada',c:'var(--warn)'}:v>-80?{l:'Severa',c:'#f97316'}:{l:'Extrema',c:'var(--danger)'};
+    return { fwi, fwiInfo: fwiLabel(fwi), balance:Math.round(balance), droughtInfo:droughtLabel(balance) };
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: GDACS
+// ════════════════════════════════════════════════════════════
+async function fetchGDACS() {
+    const xml = await proxyFetch('https://www.gdacs.org/xml/rss.xml', true);
+    const doc  = new DOMParser().parseFromString(xml,'text/xml');
+    const items = [...doc.querySelectorAll('item')].slice(0,12).map(i=>({
+        title: i.querySelector('title')?.textContent||'',
+        pubDate: i.querySelector('pubDate')?.textContent||''
+    }));
+    const kw = ['Spain','Europe','Portugal','France','Atlantic','Mediterranean','Iberian'];
+    const europe = items.filter(a=>kw.some(k=>a.title.includes(k)));
+    return { total:items.length, europe };
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: AEMET
+// ════════════════════════════════════════════════════════════
+async function aemetFetch(endpoint) {
+    const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
+    const s1 = JSON.parse(await proxyFetch(url));
+    if (s1.estado !== 200) throw new Error(`AEMET ${s1.estado}`);
+    return JSON.parse(await proxyFetch(s1.datos));
+}
+
+async function fetchAEMETobs(node) {
+    const data = await aemetFetch(`/observacion/convencional/datos/estacion/${CFG.NODES[node].estacion}`);
+    const obs = data[data.length-1];
+    return {
+        temp:     parseFloat(obs.ta??obs.temp??0),
+        humidity: parseFloat(obs.hr??0),
+        wind:     parseFloat(obs.vv??0)*3.6,
+        windDir:  parseFloat(obs.dv??0),
+        pressure: parseFloat(obs.pres??0),
+        rain1h:   parseFloat(obs.prec??0)
+    };
+}
+
+async function fetchAEMETpred(node) {
+    const data = await aemetFetch(`/prediccion/especifica/municipio/horaria/${CFG.NODES[node].municipio}`);
+    if (!data?.[0]) return null;
+    const dias = data[0].prediccion.dia||[];
+    let horas = [];
+    dias.forEach(dia => {
+        (dia.temperatura||[]).forEach((t,i) => {
+            horas.push({
+                hora: t.periodo,
+                temp: parseFloat(t.value),
+                precipProb: parseFloat(dia.probPrecipitacion?.[i]?.value??0),
+                viento:     parseFloat(dia.vientoAndRachaMax?.[i]?.velocidad?.[0]?.value??0),
+                cielo:      dia.estadoCielo?.[i]?.descripcion??'--'
+            });
+        });
+    });
+    return horas.slice(0,48);
+}
+
+async function fetchAEMETavisos() {
+    const zonas = [CFG.NODES.alm.zona, CFG.NODES.gal.zona];
+    const results = [];
+    for (const z of zonas) {
+        try {
+            const url = `https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/${z}?api_key=${CFG.AEMET_API_KEY}`;
+            const s1 = JSON.parse(await proxyFetch(url));
+            results.push({ zona: z==='61'?'Andalucía':'Galicia', estado: s1.estado===200?'aviso':'sin_avisos' });
+        } catch { results.push({ zona: z==='61'?'Andalucía':'Galicia', estado:'error' }); }
+    }
+    return results;
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: COPERNICUS EMS
+// ════════════════════════════════════════════════════════════
+async function fetchCopernicus() {
+    const xml = await proxyFetch('https://emergency.copernicus.eu/mapping/activations-rapid/feed', true);
+    const doc = new DOMParser().parseFromString(xml,'text/xml');
+    const entries = [...doc.querySelectorAll('entry')].slice(0,15).map(e=>({
+        title:   e.querySelector('title')?.textContent?.trim()||'--',
+        updated: e.querySelector('updated')?.textContent?.trim()||'--',
+        link:    e.querySelector('link')?.getAttribute('href')||'#'
+    }));
+    const kw = ['Spain','Europe','Flood','Earthquake','Portugal','France','Fire','Wildfire','Storm','Iberian','Italy','Greece'];
+    const europe = entries.filter(a=>kw.some(k=>a.title.includes(k)));
+    const type = t=>{
+        const s=t.toLowerCase();
+        if(s.includes('flood'))  return{t:'INUNDACIÓN',c:'#60a5fa'};
+        if(s.includes('fire')||s.includes('wildfire')) return{t:'INCENDIO',c:'#f97316'};
+        if(s.includes('earthquake')||s.includes('seismic')) return{t:'SÍSMICO',c:'var(--danger)'};
+        if(s.includes('storm')) return{t:'TORMENTA',c:'#a78bfa'};
+        return{t:'EMERGENCIA',c:'var(--warn)'};
+    };
+    return { total:entries.length, europe:europe.map(e=>({...e,...type(e.title)})), all:entries.slice(0,5) };
+}
+
+// ════════════════════════════════════════════════════════════
+//  API: WRI AQUEDUCT (referencia publicada 2023)
+// ════════════════════════════════════════════════════════════
+function getAqueduct(node) {
+    if (node==='alm') return {
+        stress:{l:'EXTREMADAMENTE ALTO',c:'var(--danger)'},
+        deplete:{l:'EXTREMADAMENTE ALTO',c:'var(--danger)'},
+        iav:{l:'MUY ALTO',c:'#f97316'},
+        overall:{l:'EXTREMADAMENTE ALTO',c:'var(--danger)'},
+        src:'Ref. WRI Aqueduct 4.0 (2023)'
+    };
+    return {
+        stress:{l:'BAJO-MEDIO',c:'var(--ok)'},
+        deplete:{l:'BAJO-MEDIO',c:'var(--ok)'},
+        iav:{l:'MEDIO-ALTO',c:'#84cc16'},
+        overall:{l:'BAJO-MEDIO',c:'var(--ok)'},
+        src:'Ref. WRI Aqueduct 4.0 (2023)'
+    };
+}

@@ -6,7 +6,7 @@
     <title>Hytherm Core v6.0 — Cosentino</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
@@ -47,7 +47,6 @@
 
 <!-- ══════════════════════ MAIN ══════════════════════════ -->
 <main id="main-window">
-    <div class="alert-banner" id="seismic-banner">!!! ALERTA SÍSMICA DETECTADA — PROTOCOLO SAFE-STATE INICIADO !!!</div>
 
     <div class="top-bar">
         <div class="top-bar-left">
@@ -65,7 +64,14 @@
                 <span class="top-kpi-val" id="global-ren" style="color:var(--ok)">--%</span>
             </div>
         </div>
-        <div style="font-family:'Share Tech Mono'; color:var(--ai); font-size:13px;" id="clock">00:00:00</div>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <!-- Notification Bell -->
+            <button class="notif-bell" id="notif-bell" onclick="NotificationCenter.togglePanel()" title="Centro de Notificaciones">
+                🔔
+                <span class="notif-badge" id="notif-badge" data-count="0"></span>
+            </button>
+            <div style="font-family:'Share Tech Mono'; color:var(--ai); font-size:13px;" id="clock">00:00:00</div>
+        </div>
     </div>
 
     <!-- ═══════════════════ HUD PRINCIPAL ═══════════════════ -->
@@ -464,12 +470,35 @@
     </div>
 </main>
 
-<script src="config.js"></script>
-<script src="js/api-weather.js"></script>
-<script src="js/api-energy.js"></script>
-<script src="js/api-risk.js"></script>
-<script src="js/api-aemet.js"></script>
+<!-- ══════════════════════ NOTIFICATION CENTER PANEL ══════════════════════ -->
+<div class="notif-backdrop" id="notif-backdrop" onclick="NotificationCenter.closePanel()"></div>
+<div class="notif-panel" id="notif-panel">
+    <div class="notif-panel-header">
+        <h3>🔔 Notificaciones</h3>
+        <button class="notif-panel-close" onclick="NotificationCenter.closePanel()">✕ ESC</button>
+    </div>
+    <div class="notif-panel-actions">
+        <button class="notif-filter-btn active" data-filter="all" onclick="NotificationCenter.setFilter('all')">Todas</button>
+        <button class="notif-filter-btn" data-filter="critical" onclick="NotificationCenter.setFilter('critical')">Críticas</button>
+        <button class="notif-filter-btn" data-filter="warning" onclick="NotificationCenter.setFilter('warning')">Avisos</button>
+        <button class="notif-filter-btn" data-filter="info" onclick="NotificationCenter.setFilter('info')">Info</button>
+        <button class="notif-clear-btn" onclick="NotificationCenter.clearAll()">Limpiar</button>
+    </div>
+    <div class="notif-list" id="notif-list">
+        <div class="notif-empty">
+            <span class="notif-empty-icon">🔔</span>
+            <span>Sin notificaciones</span>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════ SCRIPTS ══════════════════════ -->
+<script src="js/config.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/api.js"></script>
 <script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<script src="js/simulation.js"></script>
+<script src="js/app.js"></script>
+
 </body>
 </html>
