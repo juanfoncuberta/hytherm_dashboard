@@ -245,29 +245,72 @@ async function fetchAEMETavisos() {
 }
 
 // ── COPERNICUS EMS ──
+// async function fetchCopernicus() {
+//     const xml = await proxyFetch('https://emergency.copernicus.eu/mapping/activations-rapid/feed', true);
+//     const doc = new DOMParser().parseFromString(xml,'text/xml');
+//     const entries = [...doc.querySelectorAll('entry')].slice(0,15).map(e=>({
+//         title:   e.querySelector('title')?.textContent?.trim()||'--',
+//         updated: e.querySelector('updated')?.textContent?.trim()||'--',
+//         link:    e.querySelector('link')?.getAttribute('href')||'#'
+//     }));
+//     const kw = ['Spain','Europe','Flood','Earthquake','Portugal','France','Fire','Wildfire','Storm','Iberian','Italy','Greece'];
+//     const europe = entries.filter(a=>kw.some(k=>a.title.includes(k)));
+//     const type = t=>{
+//         const s=t.toLowerCase();
+//         if(s.includes('flood'))  return{t:'INUNDACIÓN',c:'#60a5fa'};
+//         if(s.includes('fire')||s.includes('wildfire')) return{t:'INCENDIO',c:'#f97316'};
+//         if(s.includes('earthquake')||s.includes('seismic')) return{t:'SÍSMICO',c:'var(--danger)'};
+//         if(s.includes('storm')) return{t:'TORMENTA',c:'#a78bfa'};
+//         return{t:'EMERGENCIA',c:'var(--warn)'};
+//     };
+
+//     History.add('COPERNICUS', 'global', { totalActivations: entries.length, europeActivations: europe.length });
+//     Feed.add('COPERNICUS', `${entries.length} activaciones | ${europe.length} en Europa`);
+
+//     return { total:entries.length, europe:europe.map(e=>({...e,...type(e.title)})), all:entries.slice(0,5) };
+// }
+
 async function fetchCopernicus() {
-    const xml = await proxyFetch('https://emergency.copernicus.eu/mapping/activations-rapid/feed', true);
-    const doc = new DOMParser().parseFromString(xml,'text/xml');
-    const entries = [...doc.querySelectorAll('entry')].slice(0,15).map(e=>({
-        title:   e.querySelector('title')?.textContent?.trim()||'--',
-        updated: e.querySelector('updated')?.textContent?.trim()||'--',
-        link:    e.querySelector('link')?.getAttribute('href')||'#'
+    const url = 'https://emergency.copernicus.eu/mapping/activations-rapid/feed';
+    let xml = '';
+    
+    try {
+        // Intento 1: corsproxy.io suele leer mejor los XML puros de Copernicus
+        const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        xml = await res.text();
+    } catch (e) {
+        // Intento 2: Fallback a AllOrigins en formato JSON seguro
+        log('API_COP', 'Fallo corsproxy, intentando AllOrigins...', 'warn');
+        const res2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const data = await res2.json();
+        if (!data.contents) throw new Error("Respuesta vacía de proxies");
+        xml = data.contents;
+    }
+
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const entries = [...doc.querySelectorAll('entry')].slice(0, 15).map(e => ({
+        title: e.querySelector('title')?.textContent?.trim() || '--',
+        updated: e.querySelector('updated')?.textContent?.trim() || '--',
+        link: e.querySelector('link')?.getAttribute('href') || '#'
     }));
-    const kw = ['Spain','Europe','Flood','Earthquake','Portugal','France','Fire','Wildfire','Storm','Iberian','Italy','Greece'];
-    const europe = entries.filter(a=>kw.some(k=>a.title.includes(k)));
-    const type = t=>{
-        const s=t.toLowerCase();
-        if(s.includes('flood'))  return{t:'INUNDACIÓN',c:'#60a5fa'};
-        if(s.includes('fire')||s.includes('wildfire')) return{t:'INCENDIO',c:'#f97316'};
-        if(s.includes('earthquake')||s.includes('seismic')) return{t:'SÍSMICO',c:'var(--danger)'};
-        if(s.includes('storm')) return{t:'TORMENTA',c:'#a78bfa'};
-        return{t:'EMERGENCIA',c:'var(--warn)'};
+    
+    const kw = ['Spain', 'Europe', 'Flood', 'Earthquake', 'Portugal', 'France', 'Fire', 'Wildfire', 'Storm', 'Iberian', 'Italy', 'Greece'];
+    const europe = entries.filter(a => kw.some(k => a.title.includes(k)));
+    
+    const type = t => {
+        const s = t.toLowerCase();
+        if (s.includes('flood')) return { t: 'INUNDACIÓN', c: '#60a5fa' };
+        if (s.includes('fire') || s.includes('wildfire')) return { t: 'INCENDIO', c: '#f97316' };
+        if (s.includes('earthquake') || s.includes('seismic')) return { t: 'SÍSMICO', c: 'var(--danger)' };
+        if (s.includes('storm')) return { t: 'TORMENTA', c: '#a78bfa' };
+        return { t: 'EMERGENCIA', c: 'var(--warn)' };
     };
 
     History.add('COPERNICUS', 'global', { totalActivations: entries.length, europeActivations: europe.length });
     Feed.add('COPERNICUS', `${entries.length} activaciones | ${europe.length} en Europa`);
 
-    return { total:entries.length, europe:europe.map(e=>({...e,...type(e.title)})), all:entries.slice(0,5) };
+    return { total: entries.length, europe: europe.map(e => ({ ...e, ...type(e.title) })), all: entries.slice(0, 5) };
 }
 
 // ── WRI AQUEDUCT ──
