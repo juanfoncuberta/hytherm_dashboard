@@ -1,353 +1,590 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hytherm Core v7.0 — Cosentino</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
 
-<!-- ══════════════════════ SIDEBAR ══════════════════════ -->
-<aside>
-    <div class="brand">
-        <div class="brand-logo">COSENTINO</div>
-        <div class="brand-badge">HYTHERM CORE v7.0</div>
-    </div>
-
-    <div class="nav-label">Monitorización</div>
-    <button class="nav-btn active" onclick="nav('hud',this)">⬡ &nbsp;HUD Principal</button>
-    <button class="nav-btn" onclick="nav('energy',this)">⚡ &nbsp;Red Eléctrica</button>
-    <button class="nav-btn" onclick="nav('forecast',this)">📡 &nbsp;Previsión 7d</button>
-
-    <div class="nav-label">Datos</div>
-    <button class="nav-btn" onclick="nav('feed',this)">⟳ &nbsp;Feed de Datos</button>
-    <button class="nav-btn" onclick="nav('history',this)">📊 &nbsp;Histórico</button>
-
-    <div class="nav-label">Riesgo</div>
-    <button class="nav-btn" onclick="nav('risk',this)">⚠ &nbsp;Riesgo & Alertas</button>
-    <button class="nav-btn" onclick="nav('water',this)">💧 &nbsp;Agua & Sequía</button>
-    <button class="nav-btn" onclick="nav('emergency',this)">🚨 &nbsp;Emergencias</button>
-
-    <div class="nav-label">Control</div>
-    <button class="nav-btn" onclick="nav('comfort',this)">◎ &nbsp;Confort</button>
-
-    <!-- API Status -->
-    <div class="api-panel">
-        <div class="api-panel-title">Estado APIs</div>
-        <div class="api-row"><span>Open-Meteo</span><span id="st-openmeteo" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>NASA POWER</span><span id="st-nasa" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>REData</span><span id="st-redata" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>AEMET</span><span id="st-aemet" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>EFFIS/EDO</span><span id="st-effis" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>GDACS</span><span id="st-gdacs" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>Copernicus</span><span id="st-copernicus" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>WRI Aqueduct</span><span id="st-aqueduct" style="color:var(--muted)">○ --</span></div>
-        <div class="api-row"><span>Electricitymaps</span><span id="st-emaps" style="color:var(--muted)">○ Pendiente</span></div>
-    </div>
-</aside>
-
-<!-- ══════════════════════ MAIN ══════════════════════════ -->
-<main id="main-window">
-
-    <div class="top-bar">
-        <div class="top-bar-left">
-            <div class="top-kpi">
-                <span class="top-kpi-label">Spot:</span>
-                <span class="top-kpi-val" id="global-price">-- €/kWh</span>
-                <span id="price-trend" style="color:var(--ok); font-size:10px;">▼ Valle</span>
-            </div>
-            <div class="top-kpi">
-                <span class="top-kpi-label">CO₂ Red:</span>
-                <span class="top-kpi-val" id="global-co2" style="color:var(--muted)">-- g/kWh</span>
-            </div>
-            <div class="top-kpi">
-                <span class="top-kpi-label">Renovables:</span>
-                <span class="top-kpi-val" id="global-ren" style="color:var(--ok)">--%</span>
-            </div>
-            <div class="refresh-indicator">
-                <span class="refresh-dot" id="refresh-dot"></span>
-                <span id="refresh-text">Esperando...</span>
-                <span style="margin-left:4px;color:var(--muted)" id="next-refresh"></span>
-            </div>
+    <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+    <aside>
+        <div class="brand">
+            <div class="brand-logo">COSENTINO</div>
+            <div class="brand-badge">HYTHERM CORE v7.0</div>
         </div>
-        <div class="top-bar-right">
-            <button class="notif-bell" id="notif-bell" onclick="Notif.toggle()" title="Centro de Notificaciones">
-                🔔
-                <span class="notif-badge" id="notif-badge"></span>
-            </button>
-            <div style="font-family:'Share Tech Mono'; color:var(--ai); font-size:13px;" id="clock">00:00:00</div>
-        </div>
-    </div>
 
-    <!-- ═══════════════════ HUD PRINCIPAL ═══════════════════ -->
-    <div id="page-hud" class="content-area active">
-        <div class="hud-grid">
-            <!-- ALMERÍA -->
-            <div class="hud-card" style="border-top:3px solid var(--alm)">
-                <div class="card-header">
-                    <h3>[ NODO SUR: ALMERÍA ]</h3>
-                    <span style="color:var(--ok); font-family:monospace; font-size:11px;">● ON-LINE</span>
+        <div class="nav-label">Monitorización</div>
+        <button class="nav-btn active" onclick="nav('hud',this)">⬡ &nbsp;HUD Principal</button>
+        <button class="nav-btn" onclick="nav('energy',this)">⚡ &nbsp;Red Eléctrica</button>
+        <button class="nav-btn" onclick="nav('forecast',this)">📡 &nbsp;Previsión 7d</button>
+
+        <div class="nav-label">Datos</div>
+        <button class="nav-btn" onclick="nav('feed',this)">⟳ &nbsp;Feed de Datos</button>
+        <button class="nav-btn" onclick="nav('history',this)">📊 &nbsp;Histórico</button>
+
+        <div class="nav-label">Riesgo</div>
+        <button class="nav-btn" onclick="nav('risk',this)">⚠ &nbsp;Riesgo & Alertas</button>
+        <button class="nav-btn" onclick="nav('water',this)">💧 &nbsp;Agua & Sequía</button>
+        <button class="nav-btn" onclick="nav('emergency',this)">🚨 &nbsp;Emergencias</button>
+
+        <div class="nav-label">Control</div>
+        <button class="nav-btn" onclick="nav('comfort',this)">◎ &nbsp;Confort</button>
+
+        <!-- API Status -->
+        <div class="api-panel">
+            <div class="api-panel-title">Estado APIs</div>
+            <div class="api-row"><span>Open-Meteo</span><span id="st-openmeteo" style="color:var(--muted)">○ --</span>
+            </div>
+            <div class="api-row"><span>NASA POWER</span><span id="st-nasa" style="color:var(--muted)">○ --</span></div>
+            <div class="api-row"><span>REData</span><span id="st-redata" style="color:var(--muted)">○ --</span></div>
+            <div class="api-row"><span>AEMET</span><span id="st-aemet" style="color:var(--muted)">○ --</span></div>
+            <div class="api-row"><span>EFFIS/EDO</span><span id="st-effis" style="color:var(--muted)">○ --</span></div>
+            <div class="api-row"><span>GDACS</span><span id="st-gdacs" style="color:var(--muted)">○ --</span></div>
+            <div class="api-row"><span>Copernicus</span><span id="st-copernicus" style="color:var(--muted)">○ --</span>
+            </div>
+            <div class="api-row"><span>WRI Aqueduct</span><span id="st-aqueduct" style="color:var(--muted)">○ --</span>
+            </div>
+            <div class="api-row"><span>Electricitymaps</span><span id="st-emaps" style="color:var(--muted)">○
+                    Pendiente</span></div>
+        </div>
+    </aside>
+
+    <!-- ══════════════════════ MAIN ══════════════════════════ -->
+    <main id="main-window">
+
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <div class="top-kpi">
+                    <span class="top-kpi-label">Spot:</span>
+                    <span class="top-kpi-val" id="global-price">-- €/kWh</span>
+                    <span id="price-trend" style="color:var(--ok); font-size:10px;">▼ Valle</span>
                 </div>
-                <div class="section-label" style="color:var(--alm); display:flex; justify-content:space-between;">
-                    <span>▼ ENTORNO EXTERNO (APIs)</span>
-                    <span class="aemet-badge" id="alm-aemet-badge">○ AEMET --</span>
+                <div class="top-kpi">
+                    <span class="top-kpi-label">CO₂ Red:</span>
+                    <span class="top-kpi-val" id="global-co2" style="color:var(--muted)">-- g/kWh</span>
                 </div>
-                <div class="data-section">
-                    <div class="data-box"><span class="data-title">Clima Base</span><span><span class="data-val" id="alm-ext-t">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="alm-ext-rh">RH: --%</span><span class="data-sub" id="alm-weather-desc" style="color:var(--muted)">--</span></div>
-                    <div class="data-box"><span class="data-title">Solar / Irradiancia</span><span><span class="data-val" id="alm-irr">--</span><span class="data-unit">W/m²</span></span><span class="data-sub">UV: <span id="alm-uv">--</span> | Claro: <span id="alm-irr-clear">--</span></span></div>
-                    <div class="data-box"><span class="data-title">Viento</span><span><span class="data-val" id="alm-wind">--</span><span class="data-unit">km/h</span></span><span class="data-sub">Dir: <span id="alm-wind-dir">--</span></span><span class="data-sub">Presión: <span id="alm-pressure">--</span> hPa</span></div>
-                    <div class="data-box"><span class="data-title">Precipitación</span><span><span class="data-val" id="alm-rain">--</span><span class="data-unit">mm</span></span><span class="data-sub" id="alm-aemet-aviso" style="color:var(--muted)">AEMET: --</span></div>
-                    <div class="data-box"><span class="data-title">Riesgo Fuego (FWI)</span><span class="data-val" id="alm-fwi-val">--</span><span class="data-sub" id="alm-fwi-label" style="color:var(--warn)">--</span></div>
-                    <div class="data-box"><span class="data-title">Sequía (SPI-3)</span><span class="data-val" style="font-size:13px" id="alm-drought">--</span><span class="data-sub" id="alm-drought-label">--</span><span class="data-sub" id="alm-drought-src" style="color:var(--muted); font-size:8px">--</span></div>
+                <div class="top-kpi">
+                    <span class="top-kpi-label">Renovables:</span>
+                    <span class="top-kpi-val" id="global-ren" style="color:var(--ok)">--%</span>
                 </div>
-                <div class="section-label" style="color:var(--alm)">▼ TELEMETRÍA INTERNA (CUBO / PARED)</div>
-                <div class="data-section">
-                    <div class="data-box"><span class="data-title">Sup. Dekton</span><span><span class="data-val" id="alm-dekton">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="alm-dekton-delta">Gradiente ΔT: --</span></div>
-                    <div class="data-box"><span class="data-title">Indoor Amb.</span><span><span class="data-val" id="alm-int-t">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="alm-int-rh">RH: --%</span></div>
-                    <div class="data-box"><span class="data-title">Higroscopía MOF</span><span class="data-val" id="alm-mof">--</span><span class="data-sub" id="alm-mof-detail">Condensado: --</span></div>
-                    <div class="data-box"><span class="data-title">Seebeck (Est.)</span><span><span class="data-val" id="alm-pwr">--</span><span class="data-unit">W</span></span><span class="data-sub" id="alm-pwr-sub">Cargando CSV...</span></div>
-                    <div class="data-box"><span class="data-title">Batería Sist.</span><span><span class="data-val" id="alm-batt">--</span><span class="data-unit">%</span></span><span class="data-sub" id="alm-batt-status">--</span></div>
-                    <div class="data-box"><span class="data-title">Dew Point Int.</span><span><span class="data-val" id="alm-dew">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="alm-dew-risk">Riesgo Cond.: --</span></div>
-                </div>
-                <div class="section-label" style="color:var(--alm)">▼ ESTADO ACTUADORES (IA COMMANDS)</div>
-                <div class="actuator-section">
-                    <div class="actuator-row"><span>PCM (Melt Frac.)</span><div class="progress-bg"><div class="progress-fill" id="alm-pcm-bar" style="background:var(--alm);width:0%"></div></div><span class="act-status" id="alm-pcm-st">-- CHRG</span></div>
-                    <div class="actuator-row"><span>Reflectividad Superficial</span><span class="act-status" id="alm-ref">--</span></div>
-                    <div class="actuator-row"><span>Enfriamiento Evaporativo</span><span class="act-status" id="alm-evap" style="color:var(--muted)">--</span></div>
-                    <div class="actuator-row"><span>Estrés Hídrico Cuenca</span><span class="act-status" id="alm-aq-hud" style="color:var(--danger)">EXTREMO</span></div>
+                <div class="refresh-indicator">
+                    <span class="refresh-dot" id="refresh-dot"></span>
+                    <span id="refresh-text">Esperando...</span>
+                    <span style="margin-left:4px;color:var(--muted)" id="next-refresh"></span>
                 </div>
             </div>
+            <div class="top-bar-right">
+                <button class="notif-bell" id="notif-bell" onclick="Notif.toggle()" title="Centro de Notificaciones">
+                    🔔
+                    <span class="notif-badge" id="notif-badge"></span>
+                </button>
+                <div style="font-family:'Share Tech Mono'; color:var(--ai); font-size:13px;" id="clock">00:00:00</div>
+            </div>
+        </div>
 
-            <!-- A CORUÑA -->
-            <div class="hud-card" style="border-top:3px solid var(--gal)">
-                <div class="card-header">
-                    <h3>[ NODO NORTE: A CORUÑA ]</h3>
-                    <span style="color:var(--ok); font-family:monospace; font-size:11px;">● ON-LINE</span>
+        <!-- ═══════════════════ HUD PRINCIPAL ═══════════════════ -->
+        <div id="page-hud" class="content-area active">
+            <div class="hud-grid">
+                <!-- ALMERÍA -->
+                <div class="hud-card" style="border-top:3px solid var(--alm)">
+                    <div class="card-header">
+                        <h3>[ ALMERÍA ]</h3>
+                        <span style="color:var(--ok); font-family:monospace; font-size:11px;">● ON-LINE</span>
+                    </div>
+                    <div class="section-label" style="color:var(--alm); display:flex; justify-content:space-between;">
+                        <span>▼ ENTORNO EXTERNO (APIs)</span>
+                        <span class="aemet-badge" id="alm-aemet-badge">○ AEMET --</span>
+                    </div>
+                    <div class="data-section">
+                        <div class="data-box"><span class="data-title">Clima Base</span><span><span class="data-val"
+                                    id="alm-ext-t">--</span><span class="data-unit">°C</span></span><span
+                                class="data-sub" id="alm-ext-rh">RH: --%</span><span class="data-sub"
+                                id="alm-weather-desc" style="color:var(--muted)">--</span></div>
+                        <div class="data-box"><span class="data-title">Solar / Irradiancia</span><span><span
+                                    class="data-val" id="alm-irr">--</span><span
+                                    class="data-unit">W/m²</span></span><span class="data-sub">UV: <span
+                                    id="alm-uv">--</span> | Claro: <span id="alm-irr-clear">--</span></span></div>
+                        <div class="data-box"><span class="data-title">Viento</span><span><span class="data-val"
+                                    id="alm-wind">--</span><span class="data-unit">km/h</span></span><span
+                                class="data-sub">Dir: <span id="alm-wind-dir">--</span></span><span
+                                class="data-sub">Presión: <span id="alm-pressure">--</span> hPa</span></div>
+                        <div class="data-box"><span class="data-title">Precipitación</span><span><span class="data-val"
+                                    id="alm-rain">--</span><span class="data-unit">mm</span></span><span
+                                class="data-sub" id="alm-aemet-aviso" style="color:var(--muted)">AEMET: --</span></div>
+                        <div class="data-box"><span class="data-title">Riesgo Fuego (FWI)</span><span class="data-val"
+                                id="alm-fwi-val">--</span><span class="data-sub" id="alm-fwi-label"
+                                style="color:var(--warn)">--</span></div>
+                        <div class="data-box"><span class="data-title">Sequía (SPI-3)</span><span class="data-val"
+                                style="font-size:13px" id="alm-drought">--</span><span class="data-sub"
+                                id="alm-drought-label">--</span><span class="data-sub" id="alm-drought-src"
+                                style="color:var(--muted); font-size:8px">--</span></div>
+                    </div>
+                    <div class="section-label" style="color:var(--alm)">▼ TELEMETRÍA INTERNA (CUBO / PARED)</div>
+                    <div class="data-section">
+                        <div class="data-box"><span class="data-title">Sup. Dekton</span><span><span class="data-val"
+                                    id="alm-dekton">--</span><span class="data-unit">°C</span></span><span
+                                class="data-sub" id="alm-dekton-delta">Gradiente ΔT: --</span></div>
+                        <div class="data-box"><span class="data-title">Indoor Amb.</span><span><span class="data-val"
+                                    id="alm-int-t">--</span><span class="data-unit">°C</span></span><span
+                                class="data-sub" id="alm-int-rh">RH: --%</span></div>
+                        <div class="data-box"><span class="data-title">Higroscopía MOF</span><span class="data-val"
+                                id="alm-mof">--</span><span class="data-sub" id="alm-mof-detail">Condensado: --</span>
+                        </div>
+                        <div class="data-box"><span class="data-title">Seebeck (Est.)</span><span><span class="data-val"
+                                    id="alm-pwr">--</span><span class="data-unit">W</span></span><span class="data-sub"
+                                id="alm-pwr-sub">Cargando CSV...</span></div>
+                        <div class="data-box"><span class="data-title">Batería Sist.</span><span><span class="data-val"
+                                    id="alm-batt">--</span><span class="data-unit">%</span></span><span class="data-sub"
+                                id="alm-batt-status">--</span></div>
+                        <div class="data-box"><span class="data-title">Dew Point Int.</span><span><span class="data-val"
+                                    id="alm-dew">--</span><span class="data-unit">°C</span></span><span class="data-sub"
+                                id="alm-dew-risk">Riesgo Cond.: --</span></div>
+                    </div>
+                    <div class="section-label" style="color:var(--alm)">▼ ESTADO ACTUADORES (IA COMMANDS)</div>
+                    <div class="actuator-section">
+                        <div class="actuator-row"><span>PCM (Melt Frac.)</span>
+                            <div class="progress-bg">
+                                <div class="progress-fill" id="alm-pcm-bar" style="background:var(--alm);width:0%">
+                                </div>
+                            </div><span class="act-status" id="alm-pcm-st">-- CHRG</span>
+                        </div>
+                        <div class="actuator-row"><span>Reflectividad Superficial</span><span class="act-status"
+                                id="alm-ref">--</span></div>
+                        <div class="actuator-row"><span>Enfriamiento Evaporativo</span><span class="act-status"
+                                id="alm-evap" style="color:var(--muted)">--</span></div>
+                        <div class="actuator-row"><span>Estrés Hídrico Cuenca</span><span class="act-status"
+                                id="alm-aq-hud" style="color:var(--danger)">EXTREMO</span></div>
+                    </div>
                 </div>
-                <div class="section-label" style="color:var(--gal); display:flex; justify-content:space-between;">
-                    <span>▼ ENTORNO EXTERNO (APIs)</span>
-                    <span class="aemet-badge" id="gal-aemet-badge">○ AEMET --</span>
+
+                <!-- A CORUÑA -->
+                <div class="hud-card" style="border-top:3px solid var(--gal)">
+                    <div class="card-header">
+                        <h3>[ A CORUÑA ]</h3>
+                        <span style="color:var(--ok); font-family:monospace; font-size:11px;">● ON-LINE</span>
+                    </div>
+                    <div class="section-label" style="color:var(--gal); display:flex; justify-content:space-between;">
+                        <span>▼ ENTORNO EXTERNO (APIs)</span>
+                        <span class="aemet-badge" id="gal-aemet-badge">○ AEMET --</span>
+                    </div>
+                    <div class="data-section">
+                        <div class="data-box"><span class="data-title">Clima Base</span><span><span class="data-val"
+                                    id="gal-ext-t">--</span><span class="data-unit">°C</span></span><span
+                                class="data-sub" id="gal-ext-rh">RH: --%</span><span class="data-sub"
+                                id="gal-weather-desc" style="color:var(--muted)">--</span></div>
+                        <div class="data-box"><span class="data-title">Solar / Irradiancia</span><span><span
+                                    class="data-val" id="gal-irr">--</span><span
+                                    class="data-unit">W/m²</span></span><span class="data-sub">UV: <span
+                                    id="gal-uv">--</span> | Claro: <span id="gal-irr-clear">--</span></span></div>
+                        <div class="data-box"><span class="data-title">Viento</span><span><span class="data-val"
+                                    id="gal-wind">--</span><span class="data-unit">km/h</span></span><span
+                                class="data-sub">Dir: <span id="gal-wind-dir">--</span></span><span
+                                class="data-sub">Presión: <span id="gal-pressure">--</span> hPa</span></div>
+                        <div class="data-box"><span class="data-title">Precipitación</span><span><span class="data-val"
+                                    id="gal-rain">--</span><span class="data-unit">mm</span></span><span
+                                class="data-sub" id="gal-aemet-aviso" style="color:var(--muted)">AEMET: --</span></div>
+                        <div class="data-box"><span class="data-title">Riesgo Fuego (FWI)</span><span class="data-val"
+                                id="gal-fwi-val">--</span><span class="data-sub" id="gal-fwi-label"
+                                style="color:var(--ok)">--</span></div>
+                        <div class="data-box"><span class="data-title">Sequía (SPI-3)</span><span class="data-val"
+                                style="font-size:13px" id="gal-drought">--</span><span class="data-sub"
+                                id="gal-drought-label">--</span><span class="data-sub" id="gal-drought-src"
+                                style="color:var(--muted); font-size:8px">--</span></div>
+                    </div>
+                    <div class="section-label" style="color:var(--gal)">▼ TELEMETRÍA INTERNA (CUBO / PARED)</div>
+                    <div class="data-section">
+                        <div class="data-box"><span class="data-title">Sup. Dekton</span><span><span class="data-val"
+                                    id="gal-dekton">--</span><span class="data-unit">°C</span></span><span
+                                class="data-sub" id="gal-dekton-delta">Gradiente ΔT: --</span></div>
+                        <div class="data-box"><span class="data-title">Indoor Amb.</span><span><span class="data-val"
+                                    id="gal-int-t">--</span><span class="data-unit">°C</span></span><span
+                                class="data-sub" id="gal-int-rh">RH: --%</span></div>
+                        <div class="data-box"><span class="data-title">Higroscopía MOF</span><span class="data-val"
+                                id="gal-mof">--</span><span class="data-sub" id="gal-mof-detail">Condensado: --</span>
+                        </div>
+                        <div class="data-box"><span class="data-title">Seebeck (Est.)</span><span><span class="data-val"
+                                    id="gal-pwr">--</span><span class="data-unit">W</span></span><span class="data-sub"
+                                id="gal-pwr-sub">Cargando CSV...</span></div>
+                        <div class="data-box"><span class="data-title">Batería Sist.</span><span><span class="data-val"
+                                    id="gal-batt">--</span><span class="data-unit">%</span></span><span class="data-sub"
+                                id="gal-batt-status">--</span></div>
+                        <div class="data-box"><span class="data-title">Dew Point Int.</span><span><span class="data-val"
+                                    id="gal-dew">--</span><span class="data-unit">°C</span></span><span class="data-sub"
+                                id="gal-dew-risk">Riesgo Cond.: --</span></div>
+                    </div>
+                    <div class="section-label" style="color:var(--gal)">▼ ESTADO ACTUADORES (IA COMMANDS)</div>
+                    <div class="actuator-section">
+                        <div class="actuator-row"><span>PCM (Melt Frac.)</span>
+                            <div class="progress-bg">
+                                <div class="progress-fill" id="gal-pcm-bar" style="background:var(--gal);width:0%">
+                                </div>
+                            </div><span class="act-status" id="gal-pcm-st">-- DISCHRG</span>
+                        </div>
+                        <div class="actuator-row"><span>Válvulas Drenaje/Captación</span><span class="act-status"
+                                id="gal-valv">--</span></div>
+                        <div class="actuator-row"><span>Reflectividad Superficial</span><span class="act-status"
+                                id="gal-ref" style="color:var(--muted)">--</span></div>
+                        <div class="actuator-row"><span>Estrés Hídrico Cuenca</span><span class="act-status"
+                                id="gal-aq-hud" style="color:var(--ok)">BAJO-MEDIO</span></div>
+                    </div>
                 </div>
-                <div class="data-section">
-                    <div class="data-box"><span class="data-title">Clima Base</span><span><span class="data-val" id="gal-ext-t">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="gal-ext-rh">RH: --%</span><span class="data-sub" id="gal-weather-desc" style="color:var(--muted)">--</span></div>
-                    <div class="data-box"><span class="data-title">Solar / Irradiancia</span><span><span class="data-val" id="gal-irr">--</span><span class="data-unit">W/m²</span></span><span class="data-sub">UV: <span id="gal-uv">--</span> | Claro: <span id="gal-irr-clear">--</span></span></div>
-                    <div class="data-box"><span class="data-title">Viento</span><span><span class="data-val" id="gal-wind">--</span><span class="data-unit">km/h</span></span><span class="data-sub">Dir: <span id="gal-wind-dir">--</span></span><span class="data-sub">Presión: <span id="gal-pressure">--</span> hPa</span></div>
-                    <div class="data-box"><span class="data-title">Precipitación</span><span><span class="data-val" id="gal-rain">--</span><span class="data-unit">mm</span></span><span class="data-sub" id="gal-aemet-aviso" style="color:var(--muted)">AEMET: --</span></div>
-                    <div class="data-box"><span class="data-title">Riesgo Fuego (FWI)</span><span class="data-val" id="gal-fwi-val">--</span><span class="data-sub" id="gal-fwi-label" style="color:var(--ok)">--</span></div>
-                    <div class="data-box"><span class="data-title">Sequía (SPI-3)</span><span class="data-val" style="font-size:13px" id="gal-drought">--</span><span class="data-sub" id="gal-drought-label">--</span><span class="data-sub" id="gal-drought-src" style="color:var(--muted); font-size:8px">--</span></div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ RED ELÉCTRICA ═══════════════════ -->
+        <div id="page-energy" class="content-area">
+            <h2 class="page-title">Red Eléctrica <strong>España en Tiempo Real</strong></h2>
+            <p class="page-sub">REData (Red Eléctrica España) · Electricitymaps (pendiente key)</p>
+            <div class="energy-grid">
+                <div class="energy-card" style="border-top:3px solid var(--ok)">
+                    <div class="data-title">Generación Renovable</div>
+                    <div class="data-val" id="energy-renewable">-- MW</div>
+                    <div class="data-sub">Mix: <strong id="energy-ren-pct">--%</strong></div>
                 </div>
-                <div class="section-label" style="color:var(--gal)">▼ TELEMETRÍA INTERNA (CUBO / PARED)</div>
-                <div class="data-section">
-                    <div class="data-box"><span class="data-title">Sup. Dekton</span><span><span class="data-val" id="gal-dekton">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="gal-dekton-delta">Gradiente ΔT: --</span></div>
-                    <div class="data-box"><span class="data-title">Indoor Amb.</span><span><span class="data-val" id="gal-int-t">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="gal-int-rh">RH: --%</span></div>
-                    <div class="data-box"><span class="data-title">Higroscopía MOF</span><span class="data-val" id="gal-mof">--</span><span class="data-sub" id="gal-mof-detail">Condensado: --</span></div>
-                    <div class="data-box"><span class="data-title">Seebeck (Est.)</span><span><span class="data-val" id="gal-pwr">--</span><span class="data-unit">W</span></span><span class="data-sub" id="gal-pwr-sub">Cargando CSV...</span></div>
-                    <div class="data-box"><span class="data-title">Batería Sist.</span><span><span class="data-val" id="gal-batt">--</span><span class="data-unit">%</span></span><span class="data-sub" id="gal-batt-status">--</span></div>
-                    <div class="data-box"><span class="data-title">Dew Point Int.</span><span><span class="data-val" id="gal-dew">--</span><span class="data-unit">°C</span></span><span class="data-sub" id="gal-dew-risk">Riesgo Cond.: --</span></div>
+                <div class="energy-card" style="border-top:3px solid var(--danger)">
+                    <div class="data-title">Generación Fósil</div>
+                    <div class="data-val" id="energy-fossil">-- MW</div>
                 </div>
-                <div class="section-label" style="color:var(--gal)">▼ ESTADO ACTUADORES (IA COMMANDS)</div>
-                <div class="actuator-section">
-                    <div class="actuator-row"><span>PCM (Melt Frac.)</span><div class="progress-bg"><div class="progress-fill" id="gal-pcm-bar" style="background:var(--gal);width:0%"></div></div><span class="act-status" id="gal-pcm-st">-- DISCHRG</span></div>
-                    <div class="actuator-row"><span>Válvulas Drenaje/Captación</span><span class="act-status" id="gal-valv">--</span></div>
-                    <div class="actuator-row"><span>Reflectividad Superficial</span><span class="act-status" id="gal-ref" style="color:var(--muted)">--</span></div>
-                    <div class="actuator-row"><span>Estrés Hídrico Cuenca</span><span class="act-status" id="gal-aq-hud" style="color:var(--ok)">BAJO-MEDIO</span></div>
+                <div class="energy-card" style="border-top:3px solid var(--ai)">
+                    <div class="data-title">Demanda Nacional</div>
+                    <div class="data-val" id="energy-demand">-- MW</div>
                 </div>
+                <div class="energy-card" style="border-top:3px solid var(--warn)">
+                    <div class="data-title">Intensidad CO₂ (Est.)</div>
+                    <div class="data-val" id="energy-co2">--</div>
+                    <div class="data-sub">gCO₂/kWh</div>
+                </div>
+            </div>
+            <div class="hud-card" style="padding:18px; margin-bottom:14px;">
+                <h3 style="font-size:13px; margin-bottom:12px; color:#fff;">% Renovables en el Mix</h3>
+                <div
+                    style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:10px; color:var(--muted);">
+                    <span>0%</span><span id="ren-bar-label"
+                        style="color:var(--ai); font-weight:700;">--%</span><span>100%</span></div>
+                <div style="background:#1e293b; height:10px; border-radius:5px; overflow:hidden;">
+                    <div id="ren-bar"
+                        style="height:100%; width:0%; background:var(--ok); border-radius:5px; transition:width 1.2s;">
+                    </div>
+                </div>
+            </div>
+            <div class="hud-card" style="padding:18px; border-top:3px solid var(--ok)">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 style="font-size:13px; color:#fff;">⚡ Mix Eléctrico — Electricitymaps</h3><span
+                        style="font-size:9px; color:var(--muted); font-family:'Share Tech Mono'">ZONA ES</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px;">
+                    <div class="data-box"><span class="data-title">CO₂ Real</span><span class="data-val"
+                            style="font-size:14px" id="em-carbon">--</span><span class="data-sub"
+                            id="em-ci-label">--</span></div>
+                    <div class="data-box"><span class="data-title">Sin Fósiles</span><span class="data-val"
+                            style="font-size:14px" id="em-fossil-free">--%</span></div>
+                    <div class="data-box"><span class="data-title">Renovable</span><span class="data-val"
+                            style="font-size:14px" id="em-renewable">--%</span></div>
+                </div>
+                <div id="em-breakdown" style="color:var(--muted); font-size:10px;">En espera de API key de
+                    Electricitymaps...</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ PREVISIÓN 7D ═══════════════════ -->
+        <div id="page-forecast" class="content-area">
+            <h2 class="page-title">Previsión <strong>7 Días + Horaria AEMET</strong></h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--alm)">
+                    <h3 style="color:var(--alm); margin-bottom:14px; font-size:13px;">ALMERÍA — Open-Meteo 7d</h3>
+                    <div id="alm-forecast"></div>
+                    <h3
+                        style="color:var(--alm); margin:16px 0 10px; font-size:11px; letter-spacing:1px; font-weight:600;">
+                        AEMET PREDICCIÓN HORARIA 24h</h3>
+                    <div id="alm-forecast-aemet" style="color:var(--muted); font-size:10px;">Cargando AEMET...</div>
+                </div>
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--gal)">
+                    <h3 style="color:var(--gal); margin-bottom:14px; font-size:13px;">A CORUÑA — Open-Meteo 7d</h3>
+                    <div id="gal-forecast"></div>
+                    <h3
+                        style="color:var(--gal); margin:16px 0 10px; font-size:11px; letter-spacing:1px; font-weight:600;">
+                        AEMET PREDICCIÓN HORARIA 24h</h3>
+                    <div id="gal-forecast-aemet" style="color:var(--muted); font-size:10px;">Cargando AEMET...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ FEED DE DATOS ═══════════════════ -->
+        <div id="page-feed" class="content-area">
+            <h2 class="page-title">Feed de <strong>Datos en Tiempo Real</strong></h2>
+            <p class="page-sub">Datos que se reciben de las APIs en cada ciclo de actualización. Se renueva cada hora
+                automáticamente.</p>
+            <div class="hud-card" style="padding:18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 style="font-size:12px; color:#fff;">⟳ Últimas actualizaciones API</h3>
+                    <span style="font-size:9px; color:var(--muted); font-family:'Share Tech Mono'" id="feed-count">0
+                        entradas</span>
+                </div>
+                <div class="feed-container" id="feed-container">
+                    <div style="color:var(--muted);font-size:11px;padding:20px;text-align:center;">Esperando datos de
+                        APIs...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ HISTÓRICO ═══════════════════ -->
+        <div id="page-history" class="content-area">
+            <h2 class="page-title">Histórico <strong>de Datos Recibidos</strong></h2>
+            <p class="page-sub">Registro acumulativo de todos los datos recibidos por las APIs. Se mantiene mientras la
+                sesión esté activa.</p>
+
+            <!-- Stats -->
+            <div class="history-stats">
+                <div class="history-stat-card" style="border-top:2px solid var(--ai)">
+                    <div class="data-title">Total Registros</div>
+                    <div class="data-val" id="hist-total">0</div>
+                </div>
+                <div class="history-stat-card" style="border-top:2px solid var(--ok)">
+                    <div class="data-title">Última Hora</div>
+                    <div class="data-val" id="hist-1h">0</div>
+                </div>
+                <div class="history-stat-card" style="border-top:2px solid var(--warn)">
+                    <div class="data-title">Últimas 24h</div>
+                    <div class="data-val" id="hist-24h">0</div>
+                </div>
+                <div class="history-stat-card" style="border-top:2px solid #a855f7">
+                    <div class="data-title">Fuentes Activas</div>
+                    <div class="data-val" id="hist-sources">0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="history-controls">
+                <span style="font-size:10px; color:var(--muted); font-weight:600;">FILTRAR:</span>
+                <select id="hist-source-filter" onchange="renderHistoryPage()"
+                    style="background:var(--panel);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Montserrat',sans-serif;">
+                    <option value="all">Todas las APIs</option>
+                    <option value="OPEN_METEO">Open-Meteo</option>
+                    <option value="NASA">NASA POWER</option>
+                    <option value="AEMET">AEMET</option>
+                    <option value="REDATA">REData</option>
+                    <option value="EFFIS">EFFIS/EDO</option>
+                    <option value="GDACS">GDACS</option>
+                    <option value="COPERNICUS">Copernicus</option>
+                    <option value="AQUEDUCT">WRI Aqueduct</option>
+                </select>
+                <select id="hist-node-filter" onchange="renderHistoryPage()"
+                    style="background:var(--panel);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Montserrat',sans-serif;">
+                    <option value="all">Todos los nodos</option>
+                    <option value="alm">Almería</option>
+                    <option value="gal">A Coruña</option>
+                    <option value="global">Global</option>
+                </select>
+                <button class="history-btn" onclick="History.clear();renderHistoryPage();"
+                    style="margin-left:auto;color:var(--danger);border-color:var(--danger);">Limpiar Histórico</button>
+            </div>
+
+            <!-- Table -->
+            <div class="history-scroll">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width:110px">Timestamp</th>
+                            <th style="width:55px">Nodo</th>
+                            <th style="width:95px">Fuente API</th>
+                            <th>Datos Recibidos</th>
+                            <th style="width:45px">ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hist-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">Sin datos
+                                históricos todavía. Se irán acumulando con cada actualización.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ RIESGO & ALERTAS ═══════════════════ -->
+        <div id="page-risk" class="content-area">
+            <h2 class="page-title">Riesgo <strong>& Alertas Activas</strong></h2>
+            <div class="hud-card" style="padding:18px; margin-bottom:14px; border-top:3px solid var(--warn)">
+                <h3 style="font-size:13px; margin-bottom:12px;">🌩 Avisos Oficiales AEMET</h3>
+                <div id="aemet-avisos" style="font-size:11px; color:var(--muted)">Cargando avisos AEMET...</div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--alm)">
+                    <h3 style="color:var(--alm); margin-bottom:12px; font-size:13px;">ALMERÍA — Riesgo</h3>
+                    <div class="risk-row"><span class="data-title">FWI Incendio</span><span id="alm-fwi-val-r"
+                            style="font-family:'Share Tech Mono'">--</span></div>
+                    <div class="risk-row"><span class="data-title">Nivel Riesgo Fuego</span><span
+                            id="alm-fwi-label-r">--</span></div>
+                    <div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="alm-drought-r">--</span>
+                    </div>
+                    <div class="risk-row"><span class="data-title">Balance Hídrico 30d</span><span id="alm-balance-r">--
+                            mm</span></div>
+                </div>
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--gal)">
+                    <h3 style="color:var(--gal); margin-bottom:12px; font-size:13px;">A CORUÑA — Riesgo</h3>
+                    <div class="risk-row"><span class="data-title">FWI Incendio</span><span id="gal-fwi-val-r"
+                            style="font-family:'Share Tech Mono'">--</span></div>
+                    <div class="risk-row"><span class="data-title">Nivel Riesgo Fuego</span><span
+                            id="gal-fwi-label-r">--</span></div>
+                    <div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="gal-drought-r">--</span>
+                    </div>
+                    <div class="risk-row"><span class="data-title">Balance Hídrico 30d</span><span id="gal-balance-r">--
+                            mm</span></div>
+                </div>
+            </div>
+            <div class="hud-card" style="padding:18px;">
+                <h3 style="font-size:13px; margin-bottom:12px;">⚠ Alertas GDACS — Europa / España</h3>
+                <div id="gdacs-alerts" style="font-size:11px; color:var(--muted)">Cargando GDACS...</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ AGUA & SEQUÍA ═══════════════════ -->
+        <div id="page-water" class="content-area">
+            <h2 class="page-title">Agua <strong>& Sequía</strong></h2>
+            <p class="page-sub">EDO (European Drought Observatory / JRC) · WRI Aqueduct 4.0</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--alm)">
+                    <h3 style="color:var(--alm); margin-bottom:12px; font-size:13px;">ALMERÍA — EDO SPI-3</h3>
+                    <div class="risk-row"><span class="data-title">SPI-3 Oficial</span><span id="alm-edo-spi"
+                            style="font-family:'Share Tech Mono'">--</span></div>
+                    <div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="alm-edo-label">--</span>
+                    </div>
+                    <div class="risk-row"><span class="data-title">Fecha Dato</span><span id="alm-edo-date"
+                            style="color:var(--muted)">--</span></div>
+                    <div class="risk-row"><span class="data-title">Fuente</span><span id="alm-edo-source"
+                            style="color:var(--muted); font-size:10px">--</span></div>
+                </div>
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--gal)">
+                    <h3 style="color:var(--gal); margin-bottom:12px; font-size:13px;">A CORUÑA — EDO SPI-3</h3>
+                    <div class="risk-row"><span class="data-title">SPI-3 Oficial</span><span id="gal-edo-spi"
+                            style="font-family:'Share Tech Mono'">--</span></div>
+                    <div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="gal-edo-label">--</span>
+                    </div>
+                    <div class="risk-row"><span class="data-title">Fecha Dato</span><span id="gal-edo-date"
+                            style="color:var(--muted)">--</span></div>
+                    <div class="risk-row"><span class="data-title">Fuente</span><span id="gal-edo-source"
+                            style="color:var(--muted); font-size:10px">--</span></div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--danger)">
+                    <h3 style="margin-bottom:12px; font-size:13px;">ALMERÍA — WRI Aqueduct</h3>
+                    <div class="risk-row"><span class="data-title">Estrés Hídrico Base</span><span
+                            id="alm-aq-stress">--</span></div>
+                    <div class="risk-row"><span class="data-title">Agotamiento Agua</span><span
+                            id="alm-aq-deplete">--</span></div>
+                    <div class="risk-row"><span class="data-title">Variab. Interanual</span><span
+                            id="alm-aq-iav">--</span></div>
+                    <div class="risk-row"><span class="data-title">Riesgo Global</span><span id="alm-aq-overall"
+                            style="font-weight:700">--</span></div>
+                    <div style="margin-top:6px; font-size:9px; color:var(--muted)" id="alm-aq-source">--</div>
+                </div>
+                <div class="hud-card" style="padding:18px; border-top:3px solid var(--ok)">
+                    <h3 style="margin-bottom:12px; font-size:13px;">A CORUÑA — WRI Aqueduct</h3>
+                    <div class="risk-row"><span class="data-title">Estrés Hídrico Base</span><span
+                            id="gal-aq-stress">--</span></div>
+                    <div class="risk-row"><span class="data-title">Agotamiento Agua</span><span
+                            id="gal-aq-deplete">--</span></div>
+                    <div class="risk-row"><span class="data-title">Variab. Interanual</span><span
+                            id="gal-aq-iav">--</span></div>
+                    <div class="risk-row"><span class="data-title">Riesgo Global</span><span id="gal-aq-overall"
+                            style="font-weight:700">--</span></div>
+                    <div style="margin-top:6px; font-size:9px; color:var(--muted)" id="gal-aq-source">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ EMERGENCIAS ═══════════════════ -->
+        <div id="page-emergency" class="content-area">
+            <h2 class="page-title">Emergencias <strong>Copernicus EMS</strong></h2>
+            <p class="page-sub">Activaciones del Servicio de Gestión de Emergencias de Copernicus (JRC). <span
+                    id="copernicus-count" style="color:var(--muted)">Cargando...</span></p>
+            <div class="hud-card" style="padding:18px;">
+                <div id="copernicus-alerts" style="color:var(--muted); font-size:11px;">Conectando con Copernicus EMS...
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ CONFORT ═══════════════════ -->
+        <div id="page-comfort" class="content-area">
+            <h2 class="page-title">Ajuste <strong>Confort Hygro-Térmico</strong></h2>
+            <p class="page-sub">La IA de Edge computará el delta y modificará las válvulas, PCM y reflectividad del
+                material para alcanzar el target optimizando la red eléctrica.</p>
+            <div class="comfort-grid">
+                <div class="hud-card" style="padding:28px; border-left:4px solid var(--alm)">
+                    <h3 style="margin-bottom:20px; color:var(--alm); font-size:14px;">Target Almería</h3>
+                    <div class="slider-group"><label>Temperatura (ºC) <span id="v-t-alm">24 °C</span></label><input
+                            type="range" id="t-alm" min="-10" max="40" step="0.5" value="24"
+                            oninput="userAdjust('alm','t')"></div>
+                    <div class="slider-group"><label>Humedad Relativa (%) <span id="v-h-alm">50 %</span></label><input
+                            type="range" id="h-alm" min="20" max="80" step="5" value="50"
+                            oninput="userAdjust('alm','h')"></div>
+                </div>
+                <div class="hud-card" style="padding:28px; border-left:4px solid var(--gal)">
+                    <h3 style="margin-bottom:20px; color:var(--gal); font-size:14px;">Target A Coruña</h3>
+                    <div class="slider-group"><label>Temperatura (ºC) <span id="v-t-gal">21 °C</span></label><input
+                            type="range" id="t-gal" min="-10" max="40" step="0.5" value="21"
+                            oninput="userAdjust('gal','t')"></div>
+                    <div class="slider-group"><label>Humedad Relativa (%) <span id="v-h-gal">55 %</span></label><input
+                            type="range" id="h-gal" min="20" max="80" step="5" value="55"
+                            oninput="userAdjust('gal','h')"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ TERMINAL ═══════════════════ -->
+        <div class="terminal-wrapper">
+            <div class="terminal-header">
+                <span>[ HYTHERM AI LOG — EDGE PROCESSING v7.0 ]</span>
+                <span id="term-status" style="color:var(--ok)">■ RX/TX ACTIVE</span>
+            </div>
+            <div class="terminal" id="terminal">
+                <p><span class="log-time">[--:--:--]</span> <span class="log-module">[SYS]</span> <span
+                        class="log-act">Hytherm Digital Twin v7.0 cargando...</span></p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ══════════════════════ NOTIFICATION CENTER ══════════════════════ -->
+    <div class="notif-overlay" id="notif-overlay" onclick="Notif.close()"></div>
+    <div class="notif-panel" id="notif-panel">
+        <div class="notif-header">
+            <h3>🔔 Centro de Notificaciones</h3>
+            <button class="notif-close" onclick="Notif.close()">✕ ESC</button>
+        </div>
+        <div class="notif-tabs">
+            <button class="notif-tab active" data-f="all" onclick="Notif.setFilter('all')">Todas</button>
+            <button class="notif-tab" data-f="critical" onclick="Notif.setFilter('critical')">Críticas</button>
+            <button class="notif-tab" data-f="warning" onclick="Notif.setFilter('warning')">Avisos</button>
+            <button class="notif-tab" data-f="data" onclick="Notif.setFilter('data')">Datos</button>
+            <button class="notif-tab" data-f="info" onclick="Notif.setFilter('info')">Info</button>
+            <button class="notif-tab-clear" onclick="Notif.clearAll()">Limpiar</button>
+        </div>
+        <div class="notif-list" id="notif-list">
+            <div class="notif-empty"><span style="font-size:28px;opacity:0.3">🔔</span><span>Sin notificaciones</span>
             </div>
         </div>
     </div>
 
-    <!-- ═══════════════════ RED ELÉCTRICA ═══════════════════ -->
-    <div id="page-energy" class="content-area">
-        <h2 class="page-title">Red Eléctrica <strong>España en Tiempo Real</strong></h2>
-        <p class="page-sub">REData (Red Eléctrica España) · Electricitymaps (pendiente key)</p>
-        <div class="energy-grid">
-            <div class="energy-card" style="border-top:3px solid var(--ok)"><div class="data-title">Generación Renovable</div><div class="data-val" id="energy-renewable">-- MW</div><div class="data-sub">Mix: <strong id="energy-ren-pct">--%</strong></div></div>
-            <div class="energy-card" style="border-top:3px solid var(--danger)"><div class="data-title">Generación Fósil</div><div class="data-val" id="energy-fossil">-- MW</div></div>
-            <div class="energy-card" style="border-top:3px solid var(--ai)"><div class="data-title">Demanda Nacional</div><div class="data-val" id="energy-demand">-- MW</div></div>
-            <div class="energy-card" style="border-top:3px solid var(--warn)"><div class="data-title">Intensidad CO₂ (Est.)</div><div class="data-val" id="energy-co2">--</div><div class="data-sub">gCO₂/kWh</div></div>
-        </div>
-        <div class="hud-card" style="padding:18px; margin-bottom:14px;">
-            <h3 style="font-size:13px; margin-bottom:12px; color:#fff;">% Renovables en el Mix</h3>
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:10px; color:var(--muted);"><span>0%</span><span id="ren-bar-label" style="color:var(--ai); font-weight:700;">--%</span><span>100%</span></div>
-            <div style="background:#1e293b; height:10px; border-radius:5px; overflow:hidden;"><div id="ren-bar" style="height:100%; width:0%; background:var(--ok); border-radius:5px; transition:width 1.2s;"></div></div>
-        </div>
-        <div class="hud-card" style="padding:18px; border-top:3px solid var(--ok)">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;"><h3 style="font-size:13px; color:#fff;">⚡ Mix Eléctrico — Electricitymaps</h3><span style="font-size:9px; color:var(--muted); font-family:'Share Tech Mono'">ZONA ES</span></div>
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px;">
-                <div class="data-box"><span class="data-title">CO₂ Real</span><span class="data-val" style="font-size:14px" id="em-carbon">--</span><span class="data-sub" id="em-ci-label">--</span></div>
-                <div class="data-box"><span class="data-title">Sin Fósiles</span><span class="data-val" style="font-size:14px" id="em-fossil-free">--%</span></div>
-                <div class="data-box"><span class="data-title">Renovable</span><span class="data-val" style="font-size:14px" id="em-renewable">--%</span></div>
-            </div>
-            <div id="em-breakdown" style="color:var(--muted); font-size:10px;">En espera de API key de Electricitymaps...</div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════ PREVISIÓN 7D ═══════════════════ -->
-    <div id="page-forecast" class="content-area">
-        <h2 class="page-title">Previsión <strong>7 Días + Horaria AEMET</strong></h2>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--alm)"><h3 style="color:var(--alm); margin-bottom:14px; font-size:13px;">ALMERÍA — Open-Meteo 7d</h3><div id="alm-forecast"></div><h3 style="color:var(--alm); margin:16px 0 10px; font-size:11px; letter-spacing:1px; font-weight:600;">AEMET PREDICCIÓN HORARIA 24h</h3><div id="alm-forecast-aemet" style="color:var(--muted); font-size:10px;">Cargando AEMET...</div></div>
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--gal)"><h3 style="color:var(--gal); margin-bottom:14px; font-size:13px;">A CORUÑA — Open-Meteo 7d</h3><div id="gal-forecast"></div><h3 style="color:var(--gal); margin:16px 0 10px; font-size:11px; letter-spacing:1px; font-weight:600;">AEMET PREDICCIÓN HORARIA 24h</h3><div id="gal-forecast-aemet" style="color:var(--muted); font-size:10px;">Cargando AEMET...</div></div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════ FEED DE DATOS ═══════════════════ -->
-    <div id="page-feed" class="content-area">
-        <h2 class="page-title">Feed de <strong>Datos en Tiempo Real</strong></h2>
-        <p class="page-sub">Datos que se reciben de las APIs en cada ciclo de actualización. Se renueva cada hora automáticamente.</p>
-        <div class="hud-card" style="padding:18px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                <h3 style="font-size:12px; color:#fff;">⟳ Últimas actualizaciones API</h3>
-                <span style="font-size:9px; color:var(--muted); font-family:'Share Tech Mono'" id="feed-count">0 entradas</span>
-            </div>
-            <div class="feed-container" id="feed-container">
-                <div style="color:var(--muted);font-size:11px;padding:20px;text-align:center;">Esperando datos de APIs...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════ HISTÓRICO ═══════════════════ -->
-    <div id="page-history" class="content-area">
-        <h2 class="page-title">Histórico <strong>de Datos Recibidos</strong></h2>
-        <p class="page-sub">Registro acumulativo de todos los datos recibidos por las APIs. Se mantiene mientras la sesión esté activa.</p>
-
-        <!-- Stats -->
-        <div class="history-stats">
-            <div class="history-stat-card" style="border-top:2px solid var(--ai)"><div class="data-title">Total Registros</div><div class="data-val" id="hist-total">0</div></div>
-            <div class="history-stat-card" style="border-top:2px solid var(--ok)"><div class="data-title">Última Hora</div><div class="data-val" id="hist-1h">0</div></div>
-            <div class="history-stat-card" style="border-top:2px solid var(--warn)"><div class="data-title">Últimas 24h</div><div class="data-val" id="hist-24h">0</div></div>
-            <div class="history-stat-card" style="border-top:2px solid #a855f7"><div class="data-title">Fuentes Activas</div><div class="data-val" id="hist-sources">0</div></div>
-        </div>
-
-        <!-- Filters -->
-        <div class="history-controls">
-            <span style="font-size:10px; color:var(--muted); font-weight:600;">FILTRAR:</span>
-            <select id="hist-source-filter" onchange="renderHistoryPage()" style="background:var(--panel);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Montserrat',sans-serif;">
-                <option value="all">Todas las APIs</option>
-                <option value="OPEN_METEO">Open-Meteo</option>
-                <option value="NASA">NASA POWER</option>
-                <option value="AEMET">AEMET</option>
-                <option value="REDATA">REData</option>
-                <option value="EFFIS">EFFIS/EDO</option>
-                <option value="GDACS">GDACS</option>
-                <option value="COPERNICUS">Copernicus</option>
-                <option value="AQUEDUCT">WRI Aqueduct</option>
-            </select>
-            <select id="hist-node-filter" onchange="renderHistoryPage()" style="background:var(--panel);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Montserrat',sans-serif;">
-                <option value="all">Todos los nodos</option>
-                <option value="alm">Almería</option>
-                <option value="gal">A Coruña</option>
-                <option value="global">Global</option>
-            </select>
-            <button class="history-btn" onclick="History.clear();renderHistoryPage();" style="margin-left:auto;color:var(--danger);border-color:var(--danger);">Limpiar Histórico</button>
-        </div>
-
-        <!-- Table -->
-        <div class="history-scroll">
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th style="width:110px">Timestamp</th>
-                        <th style="width:55px">Nodo</th>
-                        <th style="width:95px">Fuente API</th>
-                        <th>Datos Recibidos</th>
-                        <th style="width:45px">ID</th>
-                    </tr>
-                </thead>
-                <tbody id="hist-tbody">
-                    <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">Sin datos históricos todavía. Se irán acumulando con cada actualización.</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ═══════════════════ RIESGO & ALERTAS ═══════════════════ -->
-    <div id="page-risk" class="content-area">
-        <h2 class="page-title">Riesgo <strong>& Alertas Activas</strong></h2>
-        <div class="hud-card" style="padding:18px; margin-bottom:14px; border-top:3px solid var(--warn)"><h3 style="font-size:13px; margin-bottom:12px;">🌩 Avisos Oficiales AEMET</h3><div id="aemet-avisos" style="font-size:11px; color:var(--muted)">Cargando avisos AEMET...</div></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--alm)"><h3 style="color:var(--alm); margin-bottom:12px; font-size:13px;">ALMERÍA — Riesgo</h3><div class="risk-row"><span class="data-title">FWI Incendio</span><span id="alm-fwi-val-r" style="font-family:'Share Tech Mono'">--</span></div><div class="risk-row"><span class="data-title">Nivel Riesgo Fuego</span><span id="alm-fwi-label-r">--</span></div><div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="alm-drought-r">--</span></div><div class="risk-row"><span class="data-title">Balance Hídrico 30d</span><span id="alm-balance-r">-- mm</span></div></div>
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--gal)"><h3 style="color:var(--gal); margin-bottom:12px; font-size:13px;">A CORUÑA — Riesgo</h3><div class="risk-row"><span class="data-title">FWI Incendio</span><span id="gal-fwi-val-r" style="font-family:'Share Tech Mono'">--</span></div><div class="risk-row"><span class="data-title">Nivel Riesgo Fuego</span><span id="gal-fwi-label-r">--</span></div><div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="gal-drought-r">--</span></div><div class="risk-row"><span class="data-title">Balance Hídrico 30d</span><span id="gal-balance-r">-- mm</span></div></div>
-        </div>
-        <div class="hud-card" style="padding:18px;"><h3 style="font-size:13px; margin-bottom:12px;">⚠ Alertas GDACS — Europa / España</h3><div id="gdacs-alerts" style="font-size:11px; color:var(--muted)">Cargando GDACS...</div></div>
-    </div>
-
-    <!-- ═══════════════════ AGUA & SEQUÍA ═══════════════════ -->
-    <div id="page-water" class="content-area">
-        <h2 class="page-title">Agua <strong>& Sequía</strong></h2>
-        <p class="page-sub">EDO (European Drought Observatory / JRC) · WRI Aqueduct 4.0</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--alm)"><h3 style="color:var(--alm); margin-bottom:12px; font-size:13px;">ALMERÍA — EDO SPI-3</h3><div class="risk-row"><span class="data-title">SPI-3 Oficial</span><span id="alm-edo-spi" style="font-family:'Share Tech Mono'">--</span></div><div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="alm-edo-label">--</span></div><div class="risk-row"><span class="data-title">Fecha Dato</span><span id="alm-edo-date" style="color:var(--muted)">--</span></div><div class="risk-row"><span class="data-title">Fuente</span><span id="alm-edo-source" style="color:var(--muted); font-size:10px">--</span></div></div>
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--gal)"><h3 style="color:var(--gal); margin-bottom:12px; font-size:13px;">A CORUÑA — EDO SPI-3</h3><div class="risk-row"><span class="data-title">SPI-3 Oficial</span><span id="gal-edo-spi" style="font-family:'Share Tech Mono'">--</span></div><div class="risk-row"><span class="data-title">Nivel Sequía</span><span id="gal-edo-label">--</span></div><div class="risk-row"><span class="data-title">Fecha Dato</span><span id="gal-edo-date" style="color:var(--muted)">--</span></div><div class="risk-row"><span class="data-title">Fuente</span><span id="gal-edo-source" style="color:var(--muted); font-size:10px">--</span></div></div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--danger)"><h3 style="margin-bottom:12px; font-size:13px;">ALMERÍA — WRI Aqueduct</h3><div class="risk-row"><span class="data-title">Estrés Hídrico Base</span><span id="alm-aq-stress">--</span></div><div class="risk-row"><span class="data-title">Agotamiento Agua</span><span id="alm-aq-deplete">--</span></div><div class="risk-row"><span class="data-title">Variab. Interanual</span><span id="alm-aq-iav">--</span></div><div class="risk-row"><span class="data-title">Riesgo Global</span><span id="alm-aq-overall" style="font-weight:700">--</span></div><div style="margin-top:6px; font-size:9px; color:var(--muted)" id="alm-aq-source">--</div></div>
-            <div class="hud-card" style="padding:18px; border-top:3px solid var(--ok)"><h3 style="margin-bottom:12px; font-size:13px;">A CORUÑA — WRI Aqueduct</h3><div class="risk-row"><span class="data-title">Estrés Hídrico Base</span><span id="gal-aq-stress">--</span></div><div class="risk-row"><span class="data-title">Agotamiento Agua</span><span id="gal-aq-deplete">--</span></div><div class="risk-row"><span class="data-title">Variab. Interanual</span><span id="gal-aq-iav">--</span></div><div class="risk-row"><span class="data-title">Riesgo Global</span><span id="gal-aq-overall" style="font-weight:700">--</span></div><div style="margin-top:6px; font-size:9px; color:var(--muted)" id="gal-aq-source">--</div></div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════ EMERGENCIAS ═══════════════════ -->
-    <div id="page-emergency" class="content-area">
-        <h2 class="page-title">Emergencias <strong>Copernicus EMS</strong></h2>
-        <p class="page-sub">Activaciones del Servicio de Gestión de Emergencias de Copernicus (JRC). <span id="copernicus-count" style="color:var(--muted)">Cargando...</span></p>
-        <div class="hud-card" style="padding:18px;"><div id="copernicus-alerts" style="color:var(--muted); font-size:11px;">Conectando con Copernicus EMS...</div></div>
-    </div>
-
-    <!-- ═══════════════════ CONFORT ═══════════════════ -->
-    <div id="page-comfort" class="content-area">
-        <h2 class="page-title">Ajuste <strong>Confort Hygro-Térmico</strong></h2>
-        <p class="page-sub">La IA de Edge computará el delta y modificará las válvulas, PCM y reflectividad del material para alcanzar el target optimizando la red eléctrica.</p>
-        <div class="comfort-grid">
-            <div class="hud-card" style="padding:28px; border-left:4px solid var(--alm)"><h3 style="margin-bottom:20px; color:var(--alm); font-size:14px;">Target Almería</h3><div class="slider-group"><label>Temperatura (ºC) <span id="v-t-alm">24 °C</span></label><input type="range" id="t-alm" min="-10" max="40" step="0.5" value="24" oninput="userAdjust('alm','t')"></div><div class="slider-group"><label>Humedad Relativa (%) <span id="v-h-alm">50 %</span></label><input type="range" id="h-alm" min="20" max="80" step="5" value="50" oninput="userAdjust('alm','h')"></div></div>
-            <div class="hud-card" style="padding:28px; border-left:4px solid var(--gal)"><h3 style="margin-bottom:20px; color:var(--gal); font-size:14px;">Target A Coruña</h3><div class="slider-group"><label>Temperatura (ºC) <span id="v-t-gal">21 °C</span></label><input type="range" id="t-gal" min="-10" max="40" step="0.5" value="21" oninput="userAdjust('gal','t')"></div><div class="slider-group"><label>Humedad Relativa (%) <span id="v-h-gal">55 %</span></label><input type="range" id="h-gal" min="20" max="80" step="5" value="55" oninput="userAdjust('gal','h')"></div></div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════ TERMINAL ═══════════════════ -->
-    <div class="terminal-wrapper">
-        <div class="terminal-header">
-            <span>[ HYTHERM AI LOG — EDGE PROCESSING v7.0 ]</span>
-            <span id="term-status" style="color:var(--ok)">■ RX/TX ACTIVE</span>
-        </div>
-        <div class="terminal" id="terminal">
-            <p><span class="log-time">[--:--:--]</span> <span class="log-module">[SYS]</span> <span class="log-act">Hytherm Digital Twin v7.0 cargando...</span></p>
-        </div>
-    </div>
-</main>
-
-<!-- ══════════════════════ NOTIFICATION CENTER ══════════════════════ -->
-<div class="notif-overlay" id="notif-overlay" onclick="Notif.close()"></div>
-<div class="notif-panel" id="notif-panel">
-    <div class="notif-header">
-        <h3>🔔 Centro de Notificaciones</h3>
-        <button class="notif-close" onclick="Notif.close()">✕ ESC</button>
-    </div>
-    <div class="notif-tabs">
-        <button class="notif-tab active" data-f="all" onclick="Notif.setFilter('all')">Todas</button>
-        <button class="notif-tab" data-f="critical" onclick="Notif.setFilter('critical')">Críticas</button>
-        <button class="notif-tab" data-f="warning" onclick="Notif.setFilter('warning')">Avisos</button>
-        <button class="notif-tab" data-f="data" onclick="Notif.setFilter('data')">Datos</button>
-        <button class="notif-tab" data-f="info" onclick="Notif.setFilter('info')">Info</button>
-        <button class="notif-tab-clear" onclick="Notif.clearAll()">Limpiar</button>
-    </div>
-    <div class="notif-list" id="notif-list">
-        <div class="notif-empty"><span style="font-size:28px;opacity:0.3">🔔</span><span>Sin notificaciones</span></div>
-    </div>
-</div>
-
-<!-- ══════════════════════ SCRIPTS ══════════════════════ -->
-<script src="js/config.js"></script>
-<script src="js/notifications.js"></script>
-<script src="js/history.js"></script>
-<script src="js/feed.js"></script>
-<script src="js/api.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/sensors.js"></script>
-<script src="js/simulation.js"></script>
-<script src="js/app.js"></script>
+    <!-- ══════════════════════ SCRIPTS ══════════════════════ -->
+    <script src="js/config.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/feed.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/sensors.js"></script>
+    <script src="js/simulation.js"></script>
+    <script src="js/app.js"></script>
 
 </body>
+
 </html>
