@@ -7,19 +7,25 @@
 const History = (() => {
     // Cada entrada: { time: Date, source: string, node: 'alm'|'gal'|'global', data: {} }
     let records = [];
-    const MAX_RECORDS = 2000;
+    const MAX_RECORDS = 5000;
 
     function add(source, node, data) {
         const entry = {
             id: records.length + 1,
             time: new Date(),
-            source,     // 'OPEN_METEO', 'NASA', 'AEMET', 'REDATA', 'EFFIS', 'GDACS', etc.
-            node,       // 'alm', 'gal', 'global'
-            data        // snapshot de datos relevantes
+            source,
+            node,
+            data
         };
         records.push(entry);
         if (records.length > MAX_RECORDS) records = records.slice(-MAX_RECORDS);
         return entry;
+    }
+
+    // Insertar entrada con timestamp propio (para importar CSVs)
+    function addRaw(entry) {
+        records.push(entry);
+        if (records.length > MAX_RECORDS) records = records.slice(-MAX_RECORDS);
     }
 
     function getAll() { return records; }
@@ -59,5 +65,5 @@ const History = (() => {
 
     function clear() { records = []; }
 
-    return { add, getAll, getBySource, getByNode, getFiltered, getStats, timeSeries, clear };
+    return { add, addRaw, getAll, getBySource, getByNode, getFiltered, getStats, timeSeries, clear };
 })();

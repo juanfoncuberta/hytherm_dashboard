@@ -186,30 +186,30 @@ async function loadAPIs() {
     if (CFG.ELECTRICITYMAPS_API_KEY) { /* activar cuando llegue la key */ }
 
     setRefreshState(false);
-    log('SYS',`Carga completada (ciclo #${sim.refreshCount}). Próxima actualización en 1h.`,'act');
+    log('SYS',`Carga completada (ciclo #${sim.refreshCount}). Proxima actualizacion en 30 min.`,'act');
 
     Notif.info('APIs Actualizadas',
-        `Ciclo #${sim.refreshCount} completado. ${History.getStats().total} registros históricos acumulados.`,
+        `Ciclo #${sim.refreshCount} completado. ${History.getStats().total} registros historicos acumulados.`,
         { source: 'SYS', autoDismiss: true, dismissMs: 15000 });
 }
 
 // ── RELOJ ──
 setInterval(()=>{ const el = $('clock'); if(el) el.textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
 
-// ── REFRESH CADA HORA ──
+// ── REFRESH CADA 30 MIN ──
 setInterval(loadAPIs, CFG.REFRESH_INTERVAL);
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
     log('SYS','Hytherm Digital Twin v7.0 inicializado. Conectando APIs...','act');
-    Notif.info('Sistema Inicializado', 'Hytherm Core v7.0 conectado. Refresh cada 1h. Conectando 9 fuentes API.', { source: 'SYS', autoDismiss: true, dismissMs: 20000 });
+    Notif.info('Sistema Inicializado', 'Hytherm Core v7.0 conectado. Refresh cada 30 min. Conectando 9 fuentes API + sensoria CSV.', { source: 'SYS', autoDismiss: true, dismissMs: 20000 });
 
-    // Cargar sensoría interna desde CSVs primero
-    Sensors.load().then(() => {
-        log('SYS', 'Sensoría interna cargada desde CSV. Iniciando APIs externas...', 'act');
+    // Cargar sensoria interna desde CSVs (primera vez descarga, luego cache)
+    Sensors.load(false).then(() => {
+        log('SYS', 'Sensoria interna lista. Iniciando APIs externas...', 'act');
         loadAPIs();
     }).catch(() => {
-        log('SYS', 'CSVs no disponibles. Usando valores por defecto. Iniciando APIs...', 'warn');
+        log('SYS', 'CSVs no disponibles. Iniciando APIs...', 'warn');
         loadAPIs();
     });
 });
