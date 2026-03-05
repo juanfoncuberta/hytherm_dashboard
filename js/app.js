@@ -11,7 +11,9 @@ function nav(pageId, btn) {
     if (btn) btn.classList.add('active');
 
     // Actualizar histórico si esa pestaña
-    if (pageId === 'history') renderHistoryPage();
+    if (pageId === 'history' && typeof renderHistoryPage === 'function') {
+        renderHistoryPage();
+    }
 }
 
 // ── TERMINAL ──
@@ -63,8 +65,10 @@ async function loadAPIs() {
         const [omAlm, omGal] = await Promise.all([fetchOpenMeteo('alm'), fetchOpenMeteo('gal')]);
         sim.data.alm.extT = omAlm.current.temperature_2m;
         sim.data.gal.extT = omGal.current.temperature_2m;
-        renderWeather('alm', omAlm, null);
-        renderWeather('gal', omGal, null);
+        if(typeof renderWeather === 'function') {
+            renderWeather('alm', omAlm, null);
+            renderWeather('gal', omGal, null);
+        }
         apiStatus('openmeteo','ok');
         log('API_METEO',`ALM → ${omAlm.current.temperature_2m}°C / ${omAlm.current.relative_humidity_2m}% RH | COR → ${omGal.current.temperature_2m}°C / ${omGal.current.relative_humidity_2m}% RH`,'api');
 
@@ -72,8 +76,10 @@ async function loadAPIs() {
         apiStatus('nasa','loading');
         try {
             const [nasaAlm, nasaGal] = await Promise.all([fetchNASA('alm'), fetchNASA('gal')]);
-            renderWeather('alm', omAlm, nasaAlm);
-            renderWeather('gal', omGal, nasaGal);
+            if(typeof renderWeather === 'function') {
+                renderWeather('alm', omAlm, nasaAlm);
+                renderWeather('gal', omGal, nasaGal);
+            }
             apiStatus('nasa','ok');
             const pAlm = nasaAlm.properties.parameter.ALLSKY_SFC_SW_DWN;
             const lastAlm = Object.values(pAlm).slice(-1)[0];
@@ -90,13 +96,33 @@ async function loadAPIs() {
         Feed.add('OPEN_METEO', `Error: ${e.message}`, 'err');
     }
 
-    // REData
+    // REData (AHORA CON PRECIO Y DEMANDA)
     apiStatus('redata','loading');
     try {
         const energy = await fetchREData();
-        renderEnergy(energy);
+        
+        // Guardar variables globales para usar en el HUD
+        if (energy.price) {
+            sim.price = energy.price;
+            sim.priceIsHigh = energy.price > 0.15; // Más de 0.15€ = caro
+        }
+        sim.api.energy = energy;
+
+        if(typeof renderEnergy === 'function') renderEnergy(energy);
         apiStatus('redata','ok');
-        log('API_GRID',`REData → Renovables: ${energy.renewablePct}% | CO₂ est: ${energy.co2} gCO₂/kWh`,'api');
+        
+        // ── INYECCIÓN DE DATOS EN TU HTML ──
+        // Barra superior (KPIs globales)
+        set('global-price', energy.price ? `${energy.price} €/kWh` : '--', sim.priceIsHigh ? 'var(--danger)' : 'var(--ok)');
+        set('price-trend', sim.priceIsHigh ? '▲ Pico' : '▼ Valle', sim.priceIsHigh ? 'var(--danger)' : 'var(--ok)');
+        set('global-co2', energy.co2 ? `${energy.co2} g/kWh` : '--');
+        set('global-ren', energy.renewablePct ? `${energy.renewablePct}%` : '--');
+        
+        // Panel de Energía
+        set('energy-price', energy.price ? `${energy.price} €/kWh` : '--', sim.priceIsHigh ? 'var(--danger)' : 'var(--ok)');
+        set('energy-demand', `${Math.round(energy.demand)} MW`);
+
+        log('API_GRID',`REData → Precio: ${energy.price}€/kWh | Demanda: ${Math.round(energy.demand)}MW | Renovables: ${energy.renewablePct}%`,'api');
     } catch(e) {
         apiStatus('redata','error');
         log('API_GRID',`Error REData: ${e.message}`,'warn');
@@ -107,8 +133,10 @@ async function loadAPIs() {
     apiStatus('effis','loading');
     try {
         const [fAlm, fGal] = await Promise.all([fetchEFFIS('alm'), fetchEFFIS('gal')]);
-        renderRisk('alm', fAlm);
-        renderRisk('gal', fGal);
+        if(typeof renderRisk === 'function') {
+            renderRisk('alm', fAlm);
+            renderRisk('gal', fGal);
+        }
         apiStatus('effis','ok');
         log('API_EFFIS',`FWI ALM: ${fAlm?.fwi?.toFixed(1)} → ${fAlm?.fwiInfo?.l} | FWI COR: ${fGal?.fwi?.toFixed(1)} → ${fGal?.fwiInfo?.l}`,'warn');
     } catch(e) {
@@ -121,7 +149,7 @@ async function loadAPIs() {
     apiStatus('gdacs','loading');
     try {
         const gdacs = await fetchGDACS();
-        renderGDACS(gdacs);
+        if(typeof renderGDACS === 'function') renderGDACS(gdacs);
         apiStatus('gdacs','ok');
         log('API_GDACS',`GDACS → ${gdacs.total} alertas globales | ${gdacs.europe?.length??0} en Europa`,'api');
     } catch(e) {
@@ -135,14 +163,15 @@ async function loadAPIs() {
     try {
         const [obsAlm, obsGal, avisos, predAlm, predGal] = await Promise.all([
             fetchAEMETobs('alm'), fetchAEMETobs('gal'),
-            fetchAEMETavisos(),
-            fetchAEMETpred('alm'), fetchAEMETpred('gal')
+            fetchAEMETavisos(), fetchAEMETpred('alm'), fetchAEMETpred('gal')
         ]);
-        renderAEMETobs('alm', obsAlm);
-        renderAEMETobs('gal', obsGal);
-        renderAEMETavisos(avisos);
-        renderAEMETpred('alm', predAlm);
-        renderAEMETpred('gal', predGal);
+        if(typeof renderAEMETobs === 'function') {
+            renderAEMETobs('alm', obsAlm);
+            renderAEMETobs('gal', obsGal);
+            renderAEMETavisos(avisos);
+            renderAEMETpred('alm', predAlm);
+            renderAEMETpred('gal', predGal);
+        }
         apiStatus('aemet','ok');
         log('API_AEMET',`Observación ALM → ${obsAlm.temp?.toFixed(1)}°C OFICIAL | COR → ${obsGal.temp?.toFixed(1)}°C OFICIAL`,'api');
     } catch(e) {
@@ -155,7 +184,7 @@ async function loadAPIs() {
     apiStatus('copernicus','loading');
     try {
         const cop = await fetchCopernicus();
-        renderCopernicus(cop);
+        if(typeof renderCopernicus === 'function') renderCopernicus(cop);
         apiStatus('copernicus','ok');
         log('API_COP',`Copernicus EMS → ${cop.total} activaciones | ${cop.europe?.length??0} en Europa`,'api');
     } catch(e) {
@@ -168,14 +197,18 @@ async function loadAPIs() {
     apiStatus('aqueduct','loading');
     const aqAlm = getAqueduct('alm');
     const aqGal = getAqueduct('gal');
-    renderAqueduct('alm', aqAlm);
-    renderAqueduct('gal', aqGal);
+    if(typeof renderAqueduct === 'function') {
+        renderAqueduct('alm', aqAlm);
+        renderAqueduct('gal', aqGal);
+    }
     apiStatus('aqueduct','ok');
     log('API_AQUEDUCT',`WRI Aqueduct ALM → ${aqAlm.overall.l} | COR → ${aqGal.overall.l}`,'warn');
-    History.add('AQUEDUCT', 'alm', { stressLevel: aqAlm.overall.l });
-    History.add('AQUEDUCT', 'gal', { stressLevel: aqGal.overall.l });
+    if (typeof History !== 'undefined') {
+        History.add('AQUEDUCT', 'alm', { stressLevel: aqAlm.overall.l });
+        History.add('AQUEDUCT', 'gal', { stressLevel: aqGal.overall.l });
+    }
 
-    // EDO water page
+    // Fallbacks visuales para EDO
     set('alm-edo-spi',    '~ estimado');
     set('alm-edo-label',  'Ver Sequía HUD', 'var(--muted)');
     set('alm-edo-source', 'EDO JRC proxy no disponible — usando Open-Meteo balance hídrico');
@@ -183,33 +216,37 @@ async function loadAPIs() {
     set('gal-edo-label',  'Ver Sequía HUD', 'var(--muted)');
     set('gal-edo-source', 'EDO JRC proxy no disponible — usando Open-Meteo balance hídrico');
 
-    if (CFG.ELECTRICITYMAPS_API_KEY) { /* activar cuando llegue la key */ }
-
     setRefreshState(false);
-    log('SYS',`Carga completada (ciclo #${sim.refreshCount}). Próxima actualización en 1h.`,'act');
-
-    Notif.info('APIs Actualizadas',
-        `Ciclo #${sim.refreshCount} completado. ${History.getStats().total} registros históricos acumulados.`,
-        { source: 'SYS', autoDismiss: true, dismissMs: 15000 });
+    log('SYS',`Carga completada (ciclo #${sim.refreshCount}). Proxima actualizacion en 30 min.`,'act');
+    if(typeof Notif !== 'undefined') {
+        Notif.info('APIs Actualizadas',
+            `Ciclo #${sim.refreshCount} completado. Registros listos.`,
+            { source: 'SYS', autoDismiss: true, dismissMs: 15000 });
+    }
 }
 
 // ── RELOJ ──
 setInterval(()=>{ const el = $('clock'); if(el) el.textContent = new Date().toLocaleTimeString('es-ES'); }, 1000);
 
-// ── REFRESH CADA HORA ──
+// ── REFRESH CADA 30 MIN ──
 setInterval(loadAPIs, CFG.REFRESH_INTERVAL);
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
     log('SYS','Hytherm Digital Twin v7.0 inicializado. Conectando APIs...','act');
-    Notif.info('Sistema Inicializado', 'Hytherm Core v7.0 conectado. Refresh cada 1h. Conectando 9 fuentes API.', { source: 'SYS', autoDismiss: true, dismissMs: 20000 });
+    if(typeof Notif !== 'undefined') {
+        Notif.info('Sistema Inicializado', 'Hytherm Core v7.0 conectado. Refresh cada 30 min. Conectando fuentes API + sensoria CSV.', { source: 'SYS', autoDismiss: true, dismissMs: 20000 });
+    }
 
-    // Cargar sensoría interna desde CSVs primero
-    Sensors.load().then(() => {
-        log('SYS', 'Sensoría interna cargada desde CSV. Iniciando APIs externas...', 'act');
+    if(typeof Sensors !== 'undefined') {
+        Sensors.load(false).then(() => {
+            log('SYS', 'Sensoria interna lista. Iniciando APIs externas...', 'act');
+            loadAPIs();
+        }).catch(() => {
+            log('SYS', 'CSVs no disponibles. Iniciando APIs...', 'warn');
+            loadAPIs();
+        });
+    } else {
         loadAPIs();
-    }).catch(() => {
-        log('SYS', 'CSVs no disponibles. Usando valores por defecto. Iniciando APIs...', 'warn');
-        loadAPIs();
-    });
+    }
 });

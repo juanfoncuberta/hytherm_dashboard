@@ -10,7 +10,6 @@
 </head>
 <body>
 
-<!-- ══════════════════════ SIDEBAR ══════════════════════ -->
 <aside>
     <div class="brand">
         <div class="brand-logo">COSENTINO</div>
@@ -34,7 +33,6 @@
     <div class="nav-label">Control</div>
     <button class="nav-btn" onclick="nav('comfort',this)">◎ &nbsp;Confort</button>
 
-    <!-- API Status -->
     <div class="api-panel">
         <div class="api-panel-title">Estado APIs</div>
         <div class="api-row"><span>Open-Meteo</span><span id="st-openmeteo" style="color:var(--muted)">○ --</span></div>
@@ -49,7 +47,6 @@
     </div>
 </aside>
 
-<!-- ══════════════════════ MAIN ══════════════════════════ -->
 <main id="main-window">
 
     <div class="top-bar">
@@ -57,7 +54,7 @@
             <div class="top-kpi">
                 <span class="top-kpi-label">Spot:</span>
                 <span class="top-kpi-val" id="global-price">-- €/kWh</span>
-                <span id="price-trend" style="color:var(--ok); font-size:10px;">▼ Valle</span>
+                <span id="price-trend" style="color:var(--ok); font-size:10px;">--</span>
             </div>
             <div class="top-kpi">
                 <span class="top-kpi-label">CO₂ Red:</span>
@@ -82,10 +79,8 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ HUD PRINCIPAL ═══════════════════ -->
     <div id="page-hud" class="content-area active">
         <div class="hud-grid">
-            <!-- ALMERÍA -->
             <div class="hud-card" style="border-top:3px solid var(--alm)">
                 <div class="card-header">
                     <h3>[ NODO SUR: ALMERÍA ]</h3>
@@ -121,7 +116,6 @@
                 </div>
             </div>
 
-            <!-- A CORUÑA -->
             <div class="hud-card" style="border-top:3px solid var(--gal)">
                 <div class="card-header">
                     <h3>[ NODO NORTE: A CORUÑA ]</h3>
@@ -159,7 +153,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ RED ELÉCTRICA ═══════════════════ -->
     <div id="page-energy" class="content-area">
         <h2 class="page-title">Red Eléctrica <strong>España en Tiempo Real</strong></h2>
         <p class="page-sub">REData (Red Eléctrica España) · Electricitymaps (pendiente key)</p>
@@ -168,12 +161,14 @@
             <div class="energy-card" style="border-top:3px solid var(--danger)"><div class="data-title">Generación Fósil</div><div class="data-val" id="energy-fossil">-- MW</div></div>
             <div class="energy-card" style="border-top:3px solid var(--ai)"><div class="data-title">Demanda Nacional</div><div class="data-val" id="energy-demand">-- MW</div></div>
             <div class="energy-card" style="border-top:3px solid var(--warn)"><div class="data-title">Intensidad CO₂ (Est.)</div><div class="data-val" id="energy-co2">--</div><div class="data-sub">gCO₂/kWh</div></div>
+            <div class="energy-card" style="border-top:3px solid #a855f7"><div class="data-title">Precio Mercado (PVPC)</div><div class="data-val" id="energy-price">-- €/kWh</div><div class="data-sub">Tiempo real</div></div>
         </div>
         <div class="hud-card" style="padding:18px; margin-bottom:14px;">
             <h3 style="font-size:13px; margin-bottom:12px; color:#fff;">% Renovables en el Mix</h3>
             <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:10px; color:var(--muted);"><span>0%</span><span id="ren-bar-label" style="color:var(--ai); font-weight:700;">--%</span><span>100%</span></div>
             <div style="background:#1e293b; height:10px; border-radius:5px; overflow:hidden;"><div id="ren-bar" style="height:100%; width:0%; background:var(--ok); border-radius:5px; transition:width 1.2s;"></div></div>
         </div>
+        
         <div class="hud-card" style="padding:18px; border-top:3px solid var(--ok)">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;"><h3 style="font-size:13px; color:#fff;">⚡ Mix Eléctrico — Electricitymaps</h3><span style="font-size:9px; color:var(--muted); font-family:'Share Tech Mono'">ZONA ES</span></div>
             <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px;">
@@ -185,7 +180,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ PREVISIÓN 7D ═══════════════════ -->
     <div id="page-forecast" class="content-area">
         <h2 class="page-title">Previsión <strong>7 Días + Horaria AEMET</strong></h2>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
@@ -194,7 +188,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ FEED DE DATOS ═══════════════════ -->
     <div id="page-feed" class="content-area">
         <h2 class="page-title">Feed de <strong>Datos en Tiempo Real</strong></h2>
         <p class="page-sub">Datos que se reciben de las APIs en cada ciclo de actualización. Se renueva cada hora automáticamente.</p>
@@ -209,12 +202,10 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ HISTÓRICO ═══════════════════ -->
     <div id="page-history" class="content-area">
         <h2 class="page-title">Histórico <strong>de Datos Recibidos</strong></h2>
         <p class="page-sub">Registro acumulativo de todos los datos recibidos por las APIs. Se mantiene mientras la sesión esté activa.</p>
 
-        <!-- Stats -->
         <div class="history-stats">
             <div class="history-stat-card" style="border-top:2px solid var(--ai)"><div class="data-title">Total Registros</div><div class="data-val" id="hist-total">0</div></div>
             <div class="history-stat-card" style="border-top:2px solid var(--ok)"><div class="data-title">Última Hora</div><div class="data-val" id="hist-1h">0</div></div>
@@ -222,7 +213,6 @@
             <div class="history-stat-card" style="border-top:2px solid #a855f7"><div class="data-title">Fuentes Activas</div><div class="data-val" id="hist-sources">0</div></div>
         </div>
 
-        <!-- Filters -->
         <div class="history-controls">
             <span style="font-size:10px; color:var(--muted); font-weight:600;">FILTRAR:</span>
             <select id="hist-source-filter" onchange="renderHistoryPage()" style="background:var(--panel);border:1px solid var(--border);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Montserrat',sans-serif;">
@@ -246,7 +236,6 @@
             <button class="history-btn" onclick="History.clear();renderHistoryPage();" style="margin-left:auto;color:var(--danger);border-color:var(--danger);">Limpiar Histórico</button>
         </div>
 
-        <!-- Table -->
         <div class="history-scroll">
             <table class="history-table">
                 <thead>
@@ -265,7 +254,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ RIESGO & ALERTAS ═══════════════════ -->
     <div id="page-risk" class="content-area">
         <h2 class="page-title">Riesgo <strong>& Alertas Activas</strong></h2>
         <div class="hud-card" style="padding:18px; margin-bottom:14px; border-top:3px solid var(--warn)"><h3 style="font-size:13px; margin-bottom:12px;">🌩 Avisos Oficiales AEMET</h3><div id="aemet-avisos" style="font-size:11px; color:var(--muted)">Cargando avisos AEMET...</div></div>
@@ -276,7 +264,6 @@
         <div class="hud-card" style="padding:18px;"><h3 style="font-size:13px; margin-bottom:12px;">⚠ Alertas GDACS — Europa / España</h3><div id="gdacs-alerts" style="font-size:11px; color:var(--muted)">Cargando GDACS...</div></div>
     </div>
 
-    <!-- ═══════════════════ AGUA & SEQUÍA ═══════════════════ -->
     <div id="page-water" class="content-area">
         <h2 class="page-title">Agua <strong>& Sequía</strong></h2>
         <p class="page-sub">EDO (European Drought Observatory / JRC) · WRI Aqueduct 4.0</p>
@@ -290,14 +277,12 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ EMERGENCIAS ═══════════════════ -->
     <div id="page-emergency" class="content-area">
         <h2 class="page-title">Emergencias <strong>Copernicus EMS</strong></h2>
         <p class="page-sub">Activaciones del Servicio de Gestión de Emergencias de Copernicus (JRC). <span id="copernicus-count" style="color:var(--muted)">Cargando...</span></p>
         <div class="hud-card" style="padding:18px;"><div id="copernicus-alerts" style="color:var(--muted); font-size:11px;">Conectando con Copernicus EMS...</div></div>
     </div>
 
-    <!-- ═══════════════════ CONFORT ═══════════════════ -->
     <div id="page-comfort" class="content-area">
         <h2 class="page-title">Ajuste <strong>Confort Hygro-Térmico</strong></h2>
         <p class="page-sub">La IA de Edge computará el delta y modificará las válvulas, PCM y reflectividad del material para alcanzar el target optimizando la red eléctrica.</p>
@@ -307,7 +292,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════ TERMINAL ═══════════════════ -->
     <div class="terminal-wrapper">
         <div class="terminal-header">
             <span>[ HYTHERM AI LOG — EDGE PROCESSING v7.0 ]</span>
@@ -319,7 +303,6 @@
     </div>
 </main>
 
-<!-- ══════════════════════ NOTIFICATION CENTER ══════════════════════ -->
 <div class="notif-overlay" id="notif-overlay" onclick="Notif.close()"></div>
 <div class="notif-panel" id="notif-panel">
     <div class="notif-header">
@@ -339,7 +322,6 @@
     </div>
 </div>
 
-<!-- ══════════════════════ SCRIPTS ══════════════════════ -->
 <script src="js/config.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/history.js"></script>

@@ -55,16 +55,65 @@ async function fetchNASA(node) {
 }
 
 // ── REData ──
+// async function fetchREData() {
+//     const now   = new Date();
+//     const start = new Date(now-2*3600000).toISOString().slice(0,16);
+//     const end   = now.toISOString().slice(0,16);
+//     const urlG = `https://apidatos.ree.es/es/datos/generacion/estructura-generacion?start_date=${start}&end_date=${end}&time_trunc=hour`;
+//     const urlD = `https://apidatos.ree.es/es/datos/demanda/demanda-tiempo-real?start_date=${start}&end_date=${end}&time_trunc=hour`;
+//     const [rG, rD] = await Promise.all([fetch(urlG), fetch(urlD)]);
+//     const co2f = {'Hidráulica':4,'Nuclear':12,'Carbón':820,'Ciclo combinado':490,'Eólica':11,'Solar fotovoltaica':41,'Solar térmica':22,'Cogeneración':200,'Importación saldo':350};
+//     const renewSrc = ['Hidráulica','Eólica','Solar fotovoltaica','Solar térmica','Otras renovables'];
+//     let renewable=0, fossil=0, co2sum=0, demand=null;
+//     if (rG.ok) {
+//         const g = await rG.json();
+//         (g?.included||[]).forEach(item => {
+//             const name = item.attributes?.title||'';
+//             const vals = item.attributes?.values||[];
+//             if (!vals.length) return;
+//             const mw = vals[vals.length-1]?.value||0;
+//             if (renewSrc.some(r=>name.includes(r))) renewable+=mw; else fossil+=mw;
+//             co2sum += mw*(co2f[name]||200);
+//         });
+//     }
+//     if (rD.ok) {
+//         const d = await rD.json();
+//         const inc = d?.included?.[0];
+//         if (inc?.attributes?.values?.length) demand = inc.attributes.values[inc.attributes.values.length-1].value;
+//     }
+//     const total = renewable+fossil;
+//     const result = {
+//         renewable: Math.round(renewable), fossil: Math.round(fossil), total: Math.round(total),
+//         renewablePct: total>0 ? Math.round(renewable/total*100) : null,
+//         co2: total>0 ? Math.round(co2sum/total) : null, demand
+//     };
+
+//     History.add('REDATA', 'global', {
+//         renewable: result.renewable, fossil: result.fossil,
+//         renewablePct: result.renewablePct, co2: result.co2, demand: result.demand
+//     });
+//     Feed.add('REDATA', `Renovables: ${result.renewablePct}% (${result.renewable}MW) | CO₂: ${result.co2} g/kWh | Demanda: ${Math.round(demand||0)}MW`);
+
+//     return result;
+// }
+
 async function fetchREData() {
     const now   = new Date();
-    const start = new Date(now-2*3600000).toISOString().slice(0,16);
+    // Restamos 2 horas para asegurarnos de tener el último dato consolidado
+    const start = new Date(now - 2 * 3600000).toISOString().slice(0,16);
     const end   = now.toISOString().slice(0,16);
+    
     const urlG = `https://apidatos.ree.es/es/datos/generacion/estructura-generacion?start_date=${start}&end_date=${end}&time_trunc=hour`;
     const urlD = `https://apidatos.ree.es/es/datos/demanda/demanda-tiempo-real?start_date=${start}&end_date=${end}&time_trunc=hour`;
-    const [rG, rD] = await Promise.all([fetch(urlG), fetch(urlD)]);
+    const urlP = `https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=${start}&end_date=${end}&time_trunc=hour`;
+    
+    // Hacemos las 3 llamadas a la vez
+    const [rG, rD, rP] = await Promise.all([fetch(urlG), fetch(urlD), fetch(urlP)]);
+    
     const co2f = {'Hidráulica':4,'Nuclear':12,'Carbón':820,'Ciclo combinado':490,'Eólica':11,'Solar fotovoltaica':41,'Solar térmica':22,'Cogeneración':200,'Importación saldo':350};
     const renewSrc = ['Hidráulica','Eólica','Solar fotovoltaica','Solar térmica','Otras renovables'];
-    let renewable=0, fossil=0, co2sum=0, demand=null;
+    let renewable = 0, fossil = 0, co2sum = 0, demand = null, priceKw = null;
+
     if (rG.ok) {
         const g = await rG.json();
         (g?.included||[]).forEach(item => {
@@ -76,27 +125,42 @@ async function fetchREData() {
             co2sum += mw*(co2f[name]||200);
         });
     }
+    
     if (rD.ok) {
         const d = await rD.json();
         const inc = d?.included?.[0];
         if (inc?.attributes?.values?.length) demand = inc.attributes.values[inc.attributes.values.length-1].value;
     }
-    const total = renewable+fossil;
+
+    // NUEVO: Extraer el precio (viene en €/MWh, lo pasamos a €/kWh)
+    if (rP.ok) {
+        const p = await rP.json();
+        // Buscamos el PVPC o Precio mercado spot (ID 1001)
+        const pvpc = p?.included?.find(i => i.id === '1001' || i.attributes?.title?.includes('PVPC'));
+        if (pvpc && pvpc.attributes?.values?.length) {
+            const priceMwh = pvpc.attributes.values[pvpc.attributes.values.length-1].value;
+            priceKw = parseFloat((priceMwh / 1000).toFixed(3)); 
+        }
+    }
+
+    const total = renewable + fossil;
     const result = {
         renewable: Math.round(renewable), fossil: Math.round(fossil), total: Math.round(total),
-        renewablePct: total>0 ? Math.round(renewable/total*100) : null,
-        co2: total>0 ? Math.round(co2sum/total) : null, demand
+        renewablePct: total > 0 ? Math.round(renewable/total*100) : null,
+        co2: total > 0 ? Math.round(co2sum/total) : null, 
+        demand: demand,
+        price: priceKw 
     };
 
     History.add('REDATA', 'global', {
         renewable: result.renewable, fossil: result.fossil,
-        renewablePct: result.renewablePct, co2: result.co2, demand: result.demand
+        renewablePct: result.renewablePct, co2: result.co2, demand: result.demand, price: result.price
     });
-    Feed.add('REDATA', `Renovables: ${result.renewablePct}% (${result.renewable}MW) | CO₂: ${result.co2} g/kWh | Demanda: ${Math.round(demand||0)}MW`);
+    
+    Feed.add('REDATA', `Demanda: ${Math.round(demand||0)} MW | Precio: ${priceKw} €/kWh | Renovables: ${result.renewablePct}%`);
 
     return result;
 }
-
 // ── EFFIS + EDO ──
 async function fetchEFFIS(node) {
     const {lat,lon} = CFG.NODES[node];
