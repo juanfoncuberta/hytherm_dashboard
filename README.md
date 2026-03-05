@@ -4,7 +4,7 @@ Dashboard de monitorización en tiempo real para el sistema **Hytherm** de Cosen
 
 ## 🚀 Demo
 
-Publicado en GitHub Pages: `https://TU_USUARIO.github.io/hytherm_dashboard`
+Publicado en GitHub Pages: `https://juanfoncubertaio/hytherm_dashboard`
 
 ## 📡 APIs integradas
 
