@@ -1,6 +1,13 @@
 // ════════════════════════════════════════════════════════════
 //  API: AEMET
 // ════════════════════════════════════════════════════════════
+// async function aemetFetch(endpoint) {
+//     const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
+//     const s1 = JSON.parse(await proxyFetch(url));
+//     if (s1.estado !== 200) throw new Error(`AEMET ${s1.estado}`);
+//     return JSON.parse(await proxyFetch(s1.datos));
+// }
+
 async function aemetFetch(endpoint) {
     const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
     const s1 = JSON.parse(await proxyFetch(url));

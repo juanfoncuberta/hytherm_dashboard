@@ -18,6 +18,18 @@ async function fetchEFFIS(node) {
 // ════════════════════════════════════════════════════════════
 //  API: GDACS
 // ════════════════════════════════════════════════════════════
+// async function fetchGDACS() {
+//     const xml = await proxyFetch('https://www.gdacs.org/xml/rss.xml', true);
+//     const doc  = new DOMParser().parseFromString(xml,'text/xml');
+//     const items = [...doc.querySelectorAll('item')].slice(0,12).map(i=>({
+//         title: i.querySelector('title')?.textContent||'',
+//         pubDate: i.querySelector('pubDate')?.textContent||''
+//     }));
+//     const kw = ['Spain','Europe','Portugal','France','Atlantic','Mediterranean','Iberian'];
+//     const europe = items.filter(a=>kw.some(k=>a.title.includes(k)));
+//     return { total:items.length, europe };
+// }
+
 async function fetchGDACS() {
     const xml = await proxyFetch('https://www.gdacs.org/xml/rss.xml', true);
     const doc  = new DOMParser().parseFromString(xml,'text/xml');

@@ -118,13 +118,36 @@ async function fetchEFFIS(node) {
 }
 
 // ── GDACS ──
+// async function fetchGDACS() {
+//     const xml = await proxyFetch('https://www.gdacs.org/xml/rss.xml', true);
+//     const doc  = new DOMParser().parseFromString(xml,'text/xml');
+//     const items = [...doc.querySelectorAll('item')].slice(0,12).map(i=>({
+//         title: i.querySelector('title')?.textContent||'',
+//         pubDate: i.querySelector('pubDate')?.textContent||''
+//     }));
+//     const kw = ['Spain','Europe','Portugal','France','Atlantic','Mediterranean','Iberian'];
+//     const europe = items.filter(a=>kw.some(k=>a.title.includes(k)));
+
+//     History.add('GDACS', 'global', { totalAlerts: items.length, europeAlerts: europe.length });
+//     Feed.add('GDACS', `${items.length} alertas globales | ${europe.length} en Europa`);
+
+//     return { total:items.length, europe };
+// }
+
 async function fetchGDACS() {
-    const xml = await proxyFetch('https://www.gdacs.org/xml/rss.xml', true);
-    const doc  = new DOMParser().parseFromString(xml,'text/xml');
+    // Usamos corsproxy.io en lugar de AllOrigins para evitar el bloqueo de GDACS
+    const targetUrl = 'https://www.gdacs.org/xml/rss.xml';
+    const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl));
+    
+    if (!res.ok) throw new Error(`GDACS HTTP ${res.status}`);
+    const xml = await res.text();
+    
+    const doc  = new DOMParser().parseFromString(xml, 'text/xml');
     const items = [...doc.querySelectorAll('item')].slice(0,12).map(i=>({
         title: i.querySelector('title')?.textContent||'',
         pubDate: i.querySelector('pubDate')?.textContent||''
     }));
+    
     const kw = ['Spain','Europe','Portugal','France','Atlantic','Mediterranean','Iberian'];
     const europe = items.filter(a=>kw.some(k=>a.title.includes(k)));
 
@@ -135,13 +158,28 @@ async function fetchGDACS() {
 }
 
 // ── AEMET ──
+// async function aemetFetch(endpoint) {
+//     const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
+//     const s1 = JSON.parse(await proxyFetch(url));
+//     if (s1.estado !== 200) throw new Error(`AEMET ${s1.estado}`);
+//     return JSON.parse(await proxyFetch(s1.datos));
+// }
+
 async function aemetFetch(endpoint) {
     const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
+    
+    // Paso 1: Obtener la URL temporal (AQUÍ SÍ usamos el proxy)
     const s1 = JSON.parse(await proxyFetch(url));
-    if (s1.estado !== 200) throw new Error(`AEMET ${s1.estado}`);
-    return JSON.parse(await proxyFetch(s1.datos));
+    
+    // AEMET a veces devuelve 200 o 201 cuando todo va bien
+    if (s1.estado !== 200 && s1.estado !== 201) throw new Error(`AEMET ${s1.estado}: ${s1.descripcion}`);
+    
+    // Paso 2: Descargar los datos (AQUÍ NO usamos proxy, hacemos fetch directo)
+    const resDatos = await fetch(s1.datos);
+    if (!resDatos.ok) throw new Error(`AEMET Descarga HTTP ${resDatos.status}`);
+    
+    return await resDatos.json();
 }
-
 async function fetchAEMETobs(node) {
     const data = await aemetFetch(`/observacion/convencional/datos/estacion/${CFG.NODES[node].estacion}`);
     const obs = data[data.length-1];
