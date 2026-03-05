@@ -135,26 +135,36 @@ async function fetchEFFIS(node) {
 // }
 
 async function fetchGDACS() {
-    // Usamos corsproxy.io en lugar de AllOrigins para evitar el bloqueo de GDACS
-    const targetUrl = 'https://www.gdacs.org/xml/rss.xml';
-    const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl));
+    const url = 'https://www.gdacs.org/xml/rss.xml';
+    let xml = '';
     
-    if (!res.ok) throw new Error(`GDACS HTTP ${res.status}`);
-    const xml = await res.text();
-    
-    const doc  = new DOMParser().parseFromString(xml, 'text/xml');
-    const items = [...doc.querySelectorAll('item')].slice(0,12).map(i=>({
-        title: i.querySelector('title')?.textContent||'',
-        pubDate: i.querySelector('pubDate')?.textContent||''
+    try {
+        // Intento 1: AllOrigins en modo JSON (no RAW) para evitar bloqueos de cabeceras
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (!data.contents) throw new Error("Respuesta vacía de AllOrigins");
+        xml = data.contents;
+    } catch (e) {
+        // Intento 2: Fallback a corsproxy.io
+        log('API_GDACS', 'Fallo AllOrigins, intentando proxy alternativo...', 'warn');
+        const res2 = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+        if (!res2.ok) throw new Error(`Ambos proxies fallaron para GDACS`);
+        xml = await res2.text();
+    }
+
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const items = [...doc.querySelectorAll('item')].slice(0, 12).map(i => ({
+        title: i.querySelector('title')?.textContent || '',
+        pubDate: i.querySelector('pubDate')?.textContent || ''
     }));
     
-    const kw = ['Spain','Europe','Portugal','France','Atlantic','Mediterranean','Iberian'];
-    const europe = items.filter(a=>kw.some(k=>a.title.includes(k)));
+    const kw = ['Spain', 'Europe', 'Portugal', 'France', 'Atlantic', 'Mediterranean', 'Iberian'];
+    const europe = items.filter(a => kw.some(k => a.title.includes(k)));
 
     History.add('GDACS', 'global', { totalAlerts: items.length, europeAlerts: europe.length });
     Feed.add('GDACS', `${items.length} alertas globales | ${europe.length} en Europa`);
 
-    return { total:items.length, europe };
+    return { total: items.length, europe };
 }
 
 // ── AEMET ──
@@ -168,15 +178,16 @@ async function fetchGDACS() {
 async function aemetFetch(endpoint) {
     const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
     
-    // Paso 1: Obtener la URL temporal (AQUÍ SÍ usamos el proxy)
-    const s1 = JSON.parse(await proxyFetch(url));
+    // 1. Fetch directo a AEMET (sin proxyFetch)
+    const res1 = await fetch(url);
+    if (!res1.ok) throw new Error(`AEMET API Error: ${res1.status}`);
     
-    // AEMET a veces devuelve 200 o 201 cuando todo va bien
-    if (s1.estado !== 200 && s1.estado !== 201) throw new Error(`AEMET ${s1.estado}: ${s1.descripcion}`);
+    const s1 = await res1.json();
+    if (s1.estado !== 200 && s1.estado !== 201) throw new Error(`AEMET Estado ${s1.estado}: ${s1.descripcion}`);
     
-    // Paso 2: Descargar los datos (AQUÍ NO usamos proxy, hacemos fetch directo)
+    // 2. Fetch directo a la URL de descarga (también soporta CORS)
     const resDatos = await fetch(s1.datos);
-    if (!resDatos.ok) throw new Error(`AEMET Descarga HTTP ${resDatos.status}`);
+    if (!resDatos.ok) throw new Error(`AEMET Descarga Error: ${resDatos.status}`);
     
     return await resDatos.json();
 }

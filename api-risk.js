@@ -31,15 +31,36 @@ async function fetchEFFIS(node) {
 // }
 
 async function fetchGDACS() {
-    const xml = await proxyFetch('https://www.gdacs.org/xml/rss.xml', true);
-    const doc  = new DOMParser().parseFromString(xml,'text/xml');
-    const items = [...doc.querySelectorAll('item')].slice(0,12).map(i=>({
-        title: i.querySelector('title')?.textContent||'',
-        pubDate: i.querySelector('pubDate')?.textContent||''
+    const url = 'https://www.gdacs.org/xml/rss.xml';
+    let xml = '';
+    
+    try {
+        // Intento 1: AllOrigins en modo JSON (no RAW) para evitar bloqueos de cabeceras
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (!data.contents) throw new Error("Respuesta vacía de AllOrigins");
+        xml = data.contents;
+    } catch (e) {
+        // Intento 2: Fallback a corsproxy.io
+        log('API_GDACS', 'Fallo AllOrigins, intentando proxy alternativo...', 'warn');
+        const res2 = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+        if (!res2.ok) throw new Error(`Ambos proxies fallaron para GDACS`);
+        xml = await res2.text();
+    }
+
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const items = [...doc.querySelectorAll('item')].slice(0, 12).map(i => ({
+        title: i.querySelector('title')?.textContent || '',
+        pubDate: i.querySelector('pubDate')?.textContent || ''
     }));
-    const kw = ['Spain','Europe','Portugal','France','Atlantic','Mediterranean','Iberian'];
-    const europe = items.filter(a=>kw.some(k=>a.title.includes(k)));
-    return { total:items.length, europe };
+    
+    const kw = ['Spain', 'Europe', 'Portugal', 'France', 'Atlantic', 'Mediterranean', 'Iberian'];
+    const europe = items.filter(a => kw.some(k => a.title.includes(k)));
+
+    History.add('GDACS', 'global', { totalAlerts: items.length, europeAlerts: europe.length });
+    Feed.add('GDACS', `${items.length} alertas globales | ${europe.length} en Europa`);
+
+    return { total: items.length, europe };
 }
 
 // ════════════════════════════════════════════════════════════

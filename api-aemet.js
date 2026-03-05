@@ -10,9 +10,19 @@
 
 async function aemetFetch(endpoint) {
     const url = `https://opendata.aemet.es/opendata/api${endpoint}?api_key=${CFG.AEMET_API_KEY}`;
-    const s1 = JSON.parse(await proxyFetch(url));
-    if (s1.estado !== 200) throw new Error(`AEMET ${s1.estado}`);
-    return JSON.parse(await proxyFetch(s1.datos));
+    
+    // 1. Fetch directo a AEMET (sin proxyFetch)
+    const res1 = await fetch(url);
+    if (!res1.ok) throw new Error(`AEMET API Error: ${res1.status}`);
+    
+    const s1 = await res1.json();
+    if (s1.estado !== 200 && s1.estado !== 201) throw new Error(`AEMET Estado ${s1.estado}: ${s1.descripcion}`);
+    
+    // 2. Fetch directo a la URL de descarga (también soporta CORS)
+    const resDatos = await fetch(s1.datos);
+    if (!resDatos.ok) throw new Error(`AEMET Descarga Error: ${resDatos.status}`);
+    
+    return await resDatos.json();
 }
 
 async function fetchAEMETobs(node) {
