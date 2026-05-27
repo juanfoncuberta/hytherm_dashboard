@@ -96,23 +96,35 @@ main {
 .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .top-bar-right { display: flex; align-items: center; gap: 12px; }
 
-/* ── NODE SELECTOR ───────────────────────── */
-.node-selector-wrap {
-    display: flex; align-items: center; gap: 7px;
-    background: rgba(14,165,233,0.08);
-    border: 1px solid rgba(14,165,233,0.3);
-    border-radius: 6px; padding: 5px 10px;
+/* ── NODE SELECT ─────────────────────────── */
+.node-select-wrap {
+    display: flex; align-items: center; gap: 8px;
 }
-.node-selector-label {
-    font-size: 9px; letter-spacing: 1.5px; color: var(--ai);
-    font-weight: 700; text-transform: uppercase;
+.node-select-label {
+    font-size: 9px; letter-spacing: 1.5px; color: var(--muted);
+    font-weight: 700; text-transform: uppercase; font-family: 'Share Tech Mono', monospace;
 }
+.node-select-box {
+    position: relative; display: flex; align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    transition: border-color 0.2s;
+}
+.node-select-box:hover { border-color: var(--ai); }
 .node-selector {
-    background: transparent; border: none; color: #fff;
-    font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
-    cursor: pointer; outline: none; padding: 0 2px;
+    appearance: none; -webkit-appearance: none;
+    background: transparent; border: none; outline: none;
+    color: #fff; font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.5px;
+    padding: 5px 28px 5px 10px;
+    cursor: pointer;
 }
 .node-selector option { background: #0a1118; color: #fff; }
+.node-select-arrow {
+    position: absolute; right: 8px; pointer-events: none;
+    color: var(--muted); font-size: 11px; line-height: 1;
+}
 
 /* ── NODE FILTER (body classes) ─────────── */
 body.filter-alm [data-node="gal"] { display: none !important; }

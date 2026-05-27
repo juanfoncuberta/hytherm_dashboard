@@ -3,16 +3,25 @@
 //  Navegación, terminal, carga APIs (1h refresh), init
 // ════════════════════════════════════════════════════════════
 
+// ── TOGGLE LOG ──
+function toggleLog(btn) {
+    const wrapper = $('terminal-wrapper');
+    const visible = wrapper.style.display !== 'none';
+    wrapper.style.display = visible ? 'none' : 'flex';
+    btn.classList.toggle('active', !visible);
+    btn.innerHTML = (!visible ? '▼' : '▶') + ' &nbsp;VitalShell Log';
+}
+
 // ── SELECTOR DE NODO / EDIFICIO ──
 function switchNode(node) {
     sim.activeNode = node;
     // Aplicar clase al body para mostrar/ocultar tarjetas via CSS
     document.body.classList.remove('filter-alm', 'filter-gal');
     document.body.classList.add(`filter-${node}`);
-    // Sincronizar el select por si se llama desde código
+    // Sincronizar select
     const sel = $('node-selector');
     if (sel && sel.value !== node) sel.value = node;
-    // Actualizar el título del nodo activo en el terminal
+    // Log
     const nodeLabel = CFG.NODES[node]?.label ?? node.toUpperCase();
     log('SYS', `Nodo activo → ${nodeLabel}`, 'act');
 }

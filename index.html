@@ -32,6 +32,7 @@
 
     <div class="nav-label">Control</div>
     <button class="nav-btn" onclick="nav('comfort',this)">◎ &nbsp;Confort</button>
+    <button class="nav-btn" id="log-toggle-btn" onclick="toggleLog(this)">▶ &nbsp;VitalShell Log</button>
 
     <div class="api-panel">
         <div class="api-panel-title">Estado APIs</div>
@@ -71,12 +72,15 @@
             </div>
         </div>
         <div class="top-bar-right">
-            <div class="node-selector-wrap">
-                <span class="node-selector-label">EDIFICIO</span>
-                <select id="node-selector" class="node-selector" onchange="switchNode(this.value)">
-                    <option value="alm">⬡ Almería</option>
-                    <option value="gal">⬡ Barcelona</option>
-                </select>
+            <div class="node-select-wrap">
+                <span class="node-select-label">EDIFICIO</span>
+                <div class="node-select-box">
+                    <select id="node-selector" class="node-selector" onchange="switchNode(this.value)">
+                        <option value="alm">⬡ Almería</option>
+                        <option value="gal">⬡ Barcelona</option>
+                    </select>
+                    <span class="node-select-arrow">▾</span>
+                </div>
             </div>
             <button class="notif-bell" id="notif-bell" onclick="Notif.toggle()" title="Centro de Notificaciones">
                 🔔
@@ -299,9 +303,9 @@
         </div>
     </div>
 
-    <div class="terminal-wrapper">
+    <div class="terminal-wrapper" id="terminal-wrapper" style="display:none">
         <div class="terminal-header">
-            <span>[ HYTHERM AI LOG — EDGE PROCESSING v7.0 ]</span>
+            <span>[ VITALSHELL LOG ]</span>
             <span id="term-status" style="color:var(--ok)">■ RX/TX ACTIVE</span>
         </div>
         <div class="terminal" id="terminal">
