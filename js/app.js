@@ -3,6 +3,20 @@
 //  Navegación, terminal, carga APIs (1h refresh), init
 // ════════════════════════════════════════════════════════════
 
+// ── SELECTOR DE NODO / EDIFICIO ──
+function switchNode(node) {
+    sim.activeNode = node;
+    // Aplicar clase al body para mostrar/ocultar tarjetas via CSS
+    document.body.classList.remove('filter-alm', 'filter-gal');
+    document.body.classList.add(`filter-${node}`);
+    // Sincronizar el select por si se llama desde código
+    const sel = $('node-selector');
+    if (sel && sel.value !== node) sel.value = node;
+    // Actualizar el título del nodo activo en el terminal
+    const nodeLabel = CFG.NODES[node]?.label ?? node.toUpperCase();
+    log('SYS', `Nodo activo → ${nodeLabel}`, 'act');
+}
+
 // ── NAVEGACIÓN ──
 function nav(pageId, btn) {
     document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
@@ -218,11 +232,6 @@ async function loadAPIs() {
 
     setRefreshState(false);
     log('SYS',`Carga completada (ciclo #${sim.refreshCount}). Proxima actualizacion en 30 min.`,'act');
-    if(typeof Notif !== 'undefined') {
-        Notif.info('APIs Actualizadas',
-            `Ciclo #${sim.refreshCount} completado. Registros listos.`,
-            { source: 'SYS', autoDismiss: true, dismissMs: 15000 });
-    }
 }
 
 // ── RELOJ ──
@@ -233,10 +242,9 @@ setInterval(loadAPIs, CFG.REFRESH_INTERVAL);
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
+    // Nodo por defecto al arrancar
+    switchNode('alm');
     log('SYS','Hytherm Digital Twin v7.0 inicializado. Conectando APIs...','act');
-    if(typeof Notif !== 'undefined') {
-        Notif.info('Sistema Inicializado', 'Hytherm Core v7.0 conectado. Refresh cada 30 min. Conectando fuentes API + sensoria CSV.', { source: 'SYS', autoDismiss: true, dismissMs: 20000 });
-    }
 
     if(typeof Sensors !== 'undefined') {
         Sensors.load(false).then(() => {

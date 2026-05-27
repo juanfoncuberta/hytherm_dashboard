@@ -8,7 +8,7 @@ const CFG = {
     REFRESH_INTERVAL: 60 * 60 * 1000, // 1 hora
     NODES: {
         alm: { lat: 36.8381, lon: -2.4597, label: 'ALMERÍA',  estacion: '6291B', municipio: '04013', zona: '61' },
-        gal: { lat: 43.3623, lon: -8.4115, label: 'A CORUÑA', estacion: '1387',  municipio: '15030', zona: '72' }
+        gal: { lat: 41.3851, lon: 2.1734,  label: 'BARCELONA', estacion: '0076',  municipio: '08019', zona: '09' }
     }
 };
 

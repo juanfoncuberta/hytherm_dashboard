@@ -95,6 +95,30 @@ main {
 }
 .top-bar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .top-bar-right { display: flex; align-items: center; gap: 12px; }
+
+/* ── NODE SELECTOR ───────────────────────── */
+.node-selector-wrap {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(14,165,233,0.08);
+    border: 1px solid rgba(14,165,233,0.3);
+    border-radius: 6px; padding: 5px 10px;
+}
+.node-selector-label {
+    font-size: 9px; letter-spacing: 1.5px; color: var(--ai);
+    font-weight: 700; text-transform: uppercase;
+}
+.node-selector {
+    background: transparent; border: none; color: #fff;
+    font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
+    cursor: pointer; outline: none; padding: 0 2px;
+}
+.node-selector option { background: #0a1118; color: #fff; }
+
+/* ── NODE FILTER (body classes) ─────────── */
+body.filter-alm [data-node="gal"] { display: none !important; }
+body.filter-gal [data-node="alm"] { display: none !important; }
+body.filter-alm .node-grid,
+body.filter-gal .node-grid { grid-template-columns: 1fr !important; }
 .top-kpi { display: flex; align-items: center; gap: 5px; font-size: 11px; }
 .top-kpi-label { color: var(--muted); }
 .top-kpi-val { font-family: 'Share Tech Mono', monospace; color: #fff; font-size: 12px; }
@@ -114,7 +138,7 @@ main {
     display: flex; justify-content: space-between; align-items: center;
     background: rgba(0,0,0,0.25); flex-shrink: 0;
 }
-.card-header h3 { font-size: 13px; font-weight: 700; color: #fff; }
+.card-header h3 { font-size: 18px; font-weight: 700; color: #fff; }
 .section-label {
     padding: 4px 14px; background: rgba(255,255,255,0.02);
     font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
